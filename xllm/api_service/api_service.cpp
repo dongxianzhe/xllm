@@ -64,6 +64,8 @@ APIService::APIService(Master* master,
     auto vlm_master = dynamic_cast<VLMMaster*>(master);
     mm_chat_service_impl_ =
         std::make_unique<MMChatServiceImpl>(vlm_master, model_names);
+    mm_embedding_service_impl_ =
+        std::make_unique<MMEmbeddingServiceImpl>(vlm_master, model_names);
   } else if (FLAGS_backend == "dit") {
     image_generation_service_impl_ =
         std::make_unique<ImageGenerationServiceImpl>(
@@ -226,9 +228,17 @@ void APIService::EmbeddingsHttp(::google::protobuf::RpcController* controller,
     req_pb->set_encoding_format("float");
   }
 
-  std::shared_ptr<Call> call = std::make_shared<EmbeddingCall>(
-      ctrl, done_guard.release(), req_pb, resp_pb);
-  embedding_service_impl_->process_async(call);
+  if (FLAGS_backend == "llm") {
+    CHECK(embedding_service_impl_) << " embedding service is invalid.";
+    std::shared_ptr<Call> call = std::make_shared<EmbeddingCall>(
+        ctrl, done_guard.release(), req_pb, resp_pb);
+    embedding_service_impl_->process_async(call);
+  } else if (FLAGS_backend == "vlm") {
+    CHECK(mm_chat_service_impl_) << " mm embedding service is invalid.";
+    std::shared_ptr<Call> call = std::make_shared<MMEmbeddingCall>(
+        ctrl, done_guard.release(), req_pb, resp_pb);
+    mm_embedding_service_impl_->process_async(call);
+  }
 }
 
 void APIService::ImageGeneration(::google::protobuf::RpcController* controller,
