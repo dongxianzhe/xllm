@@ -28,6 +28,7 @@ limitations under the License.
 namespace xllm {
 namespace {
 
+template <typename EmbeddingCall>
 bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
                                 const std::string& request_id,
                                 int64_t created_time,
@@ -118,7 +119,7 @@ void EmbeddingServiceImpl::process_async_impl(
           }
         }
 
-        return send_result_to_client_brpc(
+        return send_result_to_client_brpc<EmbeddingCall>(
             call, request_id, created_time, model, req_output);
       });
 }
@@ -130,13 +131,18 @@ MMEmbeddingServiceImpl::MMEmbeddingServiceImpl(
   CHECK(master_ != nullptr);
 }
 
-// embedding_async for brpc
 void MMEmbeddingServiceImpl::process_async_impl(
     std::shared_ptr<MMEmbeddingCall> call) {
+  LOG(INFO)
+      << "$$$$$$$$$$ MMEmbeddingServiceImpl::process_async_impl is called";
   const auto& rpc_request = call->request();
   // check if model is supported
   const auto& model = rpc_request.model();
   if (!models_.contains(model)) {
+    for (const auto& model : models_) {
+      LOG(INFO) << "$$$$$$$$$$" << "support model:" << model;
+    }
+    LOG(INFO) << "$$$$$$$$$$ " << model << "not supported";
     call->finish_with_error(StatusCode::UNKNOWN, "Model not supported");
     return;
   }
@@ -146,36 +152,43 @@ void MMEmbeddingServiceImpl::process_async_impl(
   RequestParams request_params(
       rpc_request, call->get_x_request_id(), call->get_x_request_time());
 
-  // TODO only support input_str for now
-  // auto& input = rpc_request.input();
+  auto& req_messages = rpc_request.messages();
   LOG(INFO) << "$$$$$$$$$$" << rpc_request.DebugString();
   LOG(INFO) << "$$$$$$$$$$"
             << "mm request_params.max_tokens=" << request_params.max_tokens;
   LOG(INFO) << "$$$$$$$$$$" << "mm request_params.is_embeddings="
             << request_params.is_embeddings;
 
-  // schedule the request
-  // master_->handle_request(
-  //     std::move(input),
-  //     std::nullopt,
-  //     std::move(request_params),
-  //     call.get(),
-  //     [call,
-  //      model,
-  //      request_id = request_params.request_id,
-  //      created_time = absl::ToUnixSeconds(absl::Now())](
-  //         const RequestOutput& req_output) -> bool {
-  //       LOG(INFO) << "$$$$$$$$$$" << "mm request is finished";
-  //       return true;
-  //       if (req_output.status.has_value()) {
-  //         const auto& status = req_output.status.value();
-  //         if (!status.ok()) {
-  //           return call->finish_with_error(status.code(), status.message());
-  //         }
-  //       }
+  std::vector<Message> messages;
+  MMInput mm_inputs;
 
-  //       return send_result_to_client_brpc(
-  //           call, request_id, created_time, model, req_output);
-  //     });
+  static MMInputHelper helper;
+  if (!helper.trans(req_messages, messages, mm_inputs.items_)) {
+    call->finish_with_error(StatusCode::INVALID_ARGUMENT,
+                            "inputs argument is invalid.");
+    return;
+  }
+
+  // schedule the request
+  master_->handle_request(
+      std::move(messages),
+      std::move(mm_inputs),
+      std::move(request_params),
+      [call,
+       model,
+       request_id = request_params.request_id,
+       created_time = absl::ToUnixSeconds(absl::Now())](
+          const RequestOutput& req_output) -> bool {
+        LOG(INFO) << "$$$$$$$$$$" << "mm request is finished" << std::flush;
+        if (req_output.status.has_value()) {
+          const auto& status = req_output.status.value();
+          if (!status.ok()) {
+            return call->finish_with_error(status.code(), status.message());
+          }
+        }
+
+        return send_result_to_client_brpc<MMEmbeddingCall>(
+            call, request_id, created_time, model, req_output);
+      });
 }
 }  // namespace xllm
