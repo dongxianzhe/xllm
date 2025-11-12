@@ -20,8 +20,16 @@ class QWen3ForEmbeddingImpl : public LlmForEmbeddingImplBase<QWen3Model> {
     if (seleted_idxes.defined()) {
       h = h.index_select(/*dim=*/0, seleted_idxes);
     }
+    LOG(INFO) << "$$$$$$$$$$" << "h.sizes(): " << h.sizes();
+    LOG(INFO) << "$$$$$$$$$$"
+              << "seleted_idxes.sizes(): " << seleted_idxes.sizes();
+    LOG(INFO) << "$$$$$$$$$$" << "seleted_idxes: " << seleted_idxes;
     auto pooler_output = torch::nn::functional::normalize(
         h, torch::nn::functional::NormalizeFuncOptions().p(2).dim(1));
+    LOG(INFO) << "$$$$$$$$$$"
+              << "pooler_output.sizes(): " << pooler_output.sizes();
+    LOG(INFO) << "$$$$$$$$$$" << "pooler_output.view(-1).narrow(0, 0, 10): "
+              << pooler_output.view(-1).narrow(0, 0, 10);
     return pooler_output;
   }
 

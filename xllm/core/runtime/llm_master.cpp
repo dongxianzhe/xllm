@@ -165,6 +165,8 @@ void LLMMaster::handle_request(std::string prompt,
                                RequestParams sp,
                                std::optional<Call*> call,
                                OutputCallback callback) {
+  LOG(INFO) << "$$$$$$$$$$" << "LLMMaster::handle_request is called."
+            << "prompt: " << prompt;
   scheduler_->incr_pending_requests(1);
   auto cb = [callback = std::move(callback),
              scheduler = scheduler_.get()](const RequestOutput& output) {
