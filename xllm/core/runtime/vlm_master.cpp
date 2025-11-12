@@ -128,6 +128,8 @@ void VLMMaster::handle_request(const std::string& prompt,
                                const MMData& mm_data,
                                RequestParams sp,
                                OutputCallback callback) {
+  LOG(INFO) << "$$$$$$$$$$" << "handle_request is called."
+            << "prompt: " << prompt;
   scheduler_->incr_pending_requests(1);
   auto cb = [callback = std::move(callback),
              scheduler = scheduler_.get()](const RequestOutput& output) {
