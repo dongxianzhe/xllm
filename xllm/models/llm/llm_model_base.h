@@ -418,6 +418,8 @@ class LlmForCausalLMImplBase : public torch::nn::Module {
   }
 
   torch::Tensor get_input_embeddings(torch::Tensor input_ids) {
+    LOG(INFO)
+        << "$$$$$$$$$$ LlmForCausalLMImplBase::get_input_embeddings is called";
     return model_->get_input_embeddings(input_ids);
   }
 

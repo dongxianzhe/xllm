@@ -36,6 +36,7 @@ limitations under the License.
 #include "vlm/minicpmv.h"               // IWYU pragma: keep
 #include "vlm/qwen2_5_vl.h"             // IWYU pragma: keep
 #include "vlm/qwen2_vl.h"               // IWYU pragma: keep
+#include "vlm/qwen2_vl_embedding.h"     // IWYU pragma: keep
 #include "vlm/qwen3_vl.h"               // IWYU pragma: keep
 #include "vlm/qwen3_vl_moe.h"           // IWYU pragma: keep
 #endif

@@ -145,22 +145,42 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
 
 void Batch::process_sample_output(const SampleOutput& sample_output,
                                   bool replace_fake_token) {
+  LOG(INFO) << "$$$$$$$$$$ sequences_.size(): " << sequences_.size();
+  LOG(INFO) << "$$$$$$$$$$ sample_output.embeddings.defined(): "
+            << sample_output.embeddings.defined();
+  const int64_t num_seqs = [&]() {  // todo
+    if (sample_output.embeddings.defined()) {
+      // return sample_output.embeddings.size(0);
+      return static_cast<int64_t>(1);
+    } else {
+      return sample_output.next_tokens.size(0);
+    }
+  }();
   if (sample_output.embeddings.defined()) {
-    const int64_t num_seqs = sample_output.embeddings.size(0);
+    // const int64_t num_seqs = sample_output.embeddings.size(0);
     int64_t output_idx = 0;
     for (auto* seq : sequences_) {
       CHECK_LT(output_idx, num_seqs);
       auto cur_seq_embed =
           safe_to(sample_output.embeddings[output_idx++], torch::kFloat32);
+      LOG(INFO) << "$$$$$$$$$$ sequence is update_embeddings";
+      LOG(INFO) << "$$$$$$$$$$ cur_seq_embed.sizes(): "
+                << cur_seq_embed.sizes();
       seq->update_embeddings(cur_seq_embed);
+      LOG(INFO)
+          << "$$$$$$$$$$ weather sequence is finished after update_embeddings: "
+          << seq->finished();
     }
   }
 
   // if sample_output.next_tokens not defined,
   // sample_output.next_tokens.size(0) value is 0,
   // this means all sequences are in prefill stage status.
-  const int64_t num_seqs = sample_output.next_tokens.size(0);
+  LOG(INFO) << "$$$$$$$$$$ sample_output.next_tokens"
+            << sample_output.next_tokens;
+  // const int64_t num_seqs = sample_output.next_tokens.size(0);
   int64_t output_idx = 0;
+  LOG(INFO) << "$$$$$$$$$$ num_seqs:" << num_seqs;
   for (auto* seq : sequences_) {
     if (seq->finished()) {
       output_idx++;

@@ -128,8 +128,6 @@ void VLMMaster::handle_request(const std::string& prompt,
                                const MMData& mm_data,
                                RequestParams sp,
                                OutputCallback callback) {
-  LOG(INFO) << "$$$$$$$$$$" << "handle_request is called."
-            << "prompt: " << prompt;
   scheduler_->incr_pending_requests(1);
   auto cb = [callback = std::move(callback),
              scheduler = scheduler_.get()](const RequestOutput& output) {
@@ -170,6 +168,21 @@ void VLMMaster::handle_request(const std::vector<Message>& messages,
                                const MMInput& mm_inputs,
                                RequestParams sp,
                                OutputCallback callback) {
+  LOG(INFO) << "$$$$$$$$$$VLMMaster::handle_request is called. ";
+  for (const auto& message : messages) {
+    LOG(INFO) << "$$$$$$$$$$ role" << message.role;
+    if (std::holds_alternative<std::string>(message.content)) {
+      LOG(INFO) << "$$$$$$$$$$ message content is string"
+                << std::get<std::string>(message.content);
+    } else if (std::holds_alternative<Message::MMContentVec>(message.content)) {
+      LOG(INFO) << "$$$$$$$$$$ message.content is Message::MMContentVec";
+      const auto& contentVec = std::get<Message::MMContentVec>(message.content);
+      for (const auto& item : contentVec) {
+        LOG(INFO) << "$$$$$$$$$$ MMContent type: " << item.type;
+      }
+    }
+  }
+
   MMData mm_data;
   if (!mm_inputs.empty() && !image_processor_->process(mm_inputs, mm_data)) {
     LOG(ERROR) << " image processor process failed";
@@ -357,6 +370,7 @@ std::shared_ptr<Request> VLMMaster::generate_request(std::string prompt,
   sampling_param.top_k = sp.top_k;
   sampling_param.logprobs = sp.logprobs;
   sampling_param.top_logprobs = sp.top_logprobs;
+  sampling_param.is_embeddings = sp.is_embeddings;
   if (best_of > sp.n) {
     // enable logprobs for best_of to generate sequence logprob
     sampling_param.logprobs = true;

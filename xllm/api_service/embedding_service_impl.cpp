@@ -138,10 +138,10 @@ void MMEmbeddingServiceImpl::process_async_impl(
   const auto& rpc_request = call->request();
   // check if model is supported
   const auto& model = rpc_request.model();
+  for (const auto& model : models_) {
+    LOG(INFO) << "$$$$$$$$$$" << "support model:" << model;
+  }
   if (!models_.contains(model)) {
-    for (const auto& model : models_) {
-      LOG(INFO) << "$$$$$$$$$$" << "support model:" << model;
-    }
     LOG(INFO) << "$$$$$$$$$$ " << model << "not supported";
     call->finish_with_error(StatusCode::UNKNOWN, "Model not supported");
     return;
@@ -169,6 +169,7 @@ void MMEmbeddingServiceImpl::process_async_impl(
     return;
   }
 
+  LOG(INFO) << "$$$$$$$$$$ call master_->handle_request";
   // schedule the request
   master_->handle_request(
       std::move(messages),

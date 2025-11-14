@@ -746,6 +746,7 @@ ForwardOutput LLMEngine::step(std::vector<Batch>& batch) {
     process_eplb_data(results);
   }
 
+  LOG(INFO) << "$$$$$$$$$$ before llm_engine process output";
   assert(dp_size_ == worker_clients_num_ / dp_local_tp_size_);
   size_t dp_rank = 0;
   for (auto worker_rank = 0; worker_rank < worker_clients_num_;
@@ -758,12 +759,14 @@ ForwardOutput LLMEngine::step(std::vector<Batch>& batch) {
       // if src_seq_idxes is not empty, skip sample output processing and
       // process beam search output instead
       if (result.value().src_seq_idxes.size() == 0) {
+        LOG(INFO) << "$$$$$$$$$$ call process_sample_output";
         // set second input param enable_schedule_overlap to false,
         // if it's not enabled, process_sample_output will append the real
         // token, if it's enabled, this false here will append the fake token in
         // process_sample_output
         batch[dp_rank].process_sample_output(result.value(), false);
       } else {
+        LOG(INFO) << "$$$$$$$$$$ call process_beam_search_output";
         batch[dp_rank].process_beam_search_output(result.value(), false);
       }
     } else {
