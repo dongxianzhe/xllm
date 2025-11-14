@@ -96,6 +96,7 @@ std::optional<ForwardOutput> EmbedWorkerImpl::step(
 
     // carry over the sampling params
     output.do_sample = sampling_params.do_sample;
+    LOG(INFO) << "$$$$$$$$$$output.do_sample: " << output.do_sample;
     output.logprobs = sampling_params.logprobs;
     output.max_top_logprobs = sampling_params.max_top_logprobs;
   }

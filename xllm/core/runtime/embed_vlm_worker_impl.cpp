@@ -38,7 +38,9 @@ namespace xllm {
 EmbedVLMWorkerImpl::EmbedVLMWorkerImpl(const ParallelArgs& parallel_args,
                                        const torch::Device& device,
                                        const runtime::Options& options)
-    : WorkerImpl(parallel_args, device, options) {}
+    : WorkerImpl(parallel_args, device, options) {
+  LOG(INFO) << "$$$$$$$$$$ EmbedVLMWorkerImpl is initid";
+}
 
 bool EmbedVLMWorkerImpl::init_model(ModelContext& context) {
   CHECK(model_ == nullptr) << "Model is already initialized.";
@@ -66,10 +68,15 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   auto params = inputs.micro_inputs[0].input_params.to(device_);
   auto sampling_params =
       inputs.micro_inputs[0].sampling_params.to(device_, dtype_);
+  LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes: "
+            << sampling_params.selected_token_idxes;
 
+  LOG(INFO) << "$$$$$$$$$$ model_executor_->forward is called";
   // call model executor forward to get hidden states
   auto hidden_states = model_executor_->forward(
       {flatten_tokens}, {flatten_positions}, kv_caches_, {params});
+  LOG(INFO) << "$$$$$$$$$$ hidden_states.sizes(): " << hidden_states.sizes();
+  LOG(INFO) << "$$$$$$$$$$ model_executor_->forward is finished";
 
   ret = device_.synchronize_default_stream();
   COUNTER_ADD(execution_latency_seconds_model, timer.elapsed_seconds());
@@ -78,9 +85,29 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
     return std::nullopt;
   }
 
+  auto embeddings = hidden_states;  // todo call pooler outside model
   // driver prepare model output
   ForwardOutput output;
-  output.embedding = hidden_states;
+  SampleOutput sample_output;
+
+  LOG(INFO) << "sampling_params.selected_token_idxes.defined() && "
+               "inputs.micro_inputs[0].sampling_params.is_embeddings"
+            << (sampling_params.selected_token_idxes.defined() &&
+                inputs.micro_inputs[0].sampling_params.is_embeddings);
+  LOG(INFO) << "inputs.micro_inputs[0].sampling_params.is_embeddings: "
+            << inputs.micro_inputs[0].sampling_params.is_embeddings;
+  if (sampling_params.selected_token_idxes.defined() &&
+      inputs.micro_inputs[0].sampling_params.is_embeddings) {
+    sample_output.embeddings = embeddings;
+    output.sample_output = sample_output;
+  }
+  output.embedding = embeddings;
+
+  // LOG(INFO) << "$$$$$$$$$$ output.do_sample:" << output.do_sample;
+  // output.do_sample = sampling_params.do_sample;
+  // LOG(INFO) << "$$$$$$$$$$ output.do_sample:" << output.do_sample;
+  // output.logprobs = sampling_params.logprobs;
+  // output.max_top_logprobs = sampling_params.max_top_logprobs;
   return output;
 }
 

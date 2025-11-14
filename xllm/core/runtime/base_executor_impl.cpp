@@ -36,6 +36,7 @@ torch::Tensor BaseExecutorImpl::run(
     const std::vector<torch::Tensor>& positions,
     std::vector<KVCache>& kv_caches,
     const std::vector<ModelInputParams>& params) {
+  LOG(INFO) << "$$$$$$$$$$ call BaseExecutorImpl::run";
   return model_->forward(tokens, positions, kv_caches, params);
 }
 

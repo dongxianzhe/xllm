@@ -486,7 +486,10 @@ class Qwen2_VLForConditionalGenerationImpl : public torch::nn::Module {
       const std::optional<Qwen2_VLImageInputs>& image_input,
       const std::optional<Qwen2_VLVideoInputs>& video_input,
       const ModelInputParams& input_params) {
+    LOG(INFO) << "$$$$$$$$$$ before "
+                 "language_model_->get_input_embeddings(input_ids);";
     auto inputs_embeds = language_model_->get_input_embeddings(input_ids);
+    LOG(INFO) << "$$$$$$$$$$ before auto image_embeds = visual_()";
     if (image_input) {
       // visual
       auto image_embeds = visual_(image_input->pixel_values.to(options_),
@@ -504,6 +507,8 @@ class Qwen2_VLForConditionalGenerationImpl : public torch::nn::Module {
                         const std::vector<torch::Tensor>& positions,
                         std::vector<KVCache>& kv_caches,
                         const std::vector<ModelInputParams>& input_params) {
+    LOG(INFO)
+        << "$$$$$$$$$$ Qwen2_VLForConditionalGenerationImpl forward is called";
     torch::NoGradGuard no_grad;
     const auto& mm_data = input_params[0].mm_data;
     torch::Tensor pixel_values;
@@ -518,8 +523,10 @@ class Qwen2_VLForConditionalGenerationImpl : public torch::nn::Module {
 
     if (pixel_values.defined() && image_grid_thw.defined())
       image_inputs = Qwen2_VLImageInputs{pixel_values, image_grid_thw};
+    LOG(INFO) << "$$$$$$$$$$ before get_input_embeddings";
     auto inputs_embeds = get_input_embeddings(
         tokens[0], image_inputs, video_inputs, input_params[0]);
+    LOG(INFO) << "$$$$$$$$$$" << "inputs_embeds.shape" << inputs_embeds.sizes();
     input_params[0].input_embedding = inputs_embeds;
     auto emb = language_model_(tokens, positions, kv_caches, input_params);
 

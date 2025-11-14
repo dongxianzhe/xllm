@@ -315,7 +315,7 @@ ForwardOutput VLMEngine::step(std::vector<Batch>& batches) {
 
   DCHECK(forward_output.has_value()) << "Failed to execute model";
   batches[0].process_sample_output(forward_output.value().sample_output, false);
-  batches[0].process_embedding_output(forward_output.value().embedding);
+  // batches[0].process_embedding_output(forward_output.value().embedding);
   return forward_output.value();
 }
 
