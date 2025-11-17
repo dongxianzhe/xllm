@@ -60,7 +60,9 @@ class Qwen2_VLForEmbeddingImpl : public torch::nn::Module {
         tokens[0], image_inputs, video_inputs, input_params[0]);
     input_params[0].input_embedding = inputs_embeds;
     auto emb = language_model_(tokens, positions, kv_caches, input_params);
+    LOG(INFO) << "$$$$$$$$$$ emb shape" << emb.sizes();
     auto emb_out = pooler(emb, torch::Tensor());
+    LOG(INFO) << "$$$$$$$$$$ emb_out shape" << emb_out.sizes();
     return emb_out;
   }
 

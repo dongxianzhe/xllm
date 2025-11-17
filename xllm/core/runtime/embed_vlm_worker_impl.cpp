@@ -76,6 +76,16 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   auto hidden_states = model_executor_->forward(
       {flatten_tokens}, {flatten_positions}, kv_caches_, {params});
   LOG(INFO) << "$$$$$$$$$$ hidden_states.sizes(): " << hidden_states.sizes();
+  LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes"
+            << sampling_params.selected_token_idxes;
+  if (sampling_params.selected_token_idxes.defined()) {
+    hidden_states = hidden_states.index_select(
+        /*dim=*/0,
+        sampling_params
+            .selected_token_idxes);  // todo remove this in by calling pooler
+    LOG(INFO) << "$$$$$$$$$$ hidden_states.sizes() after select: "
+              << hidden_states.sizes();
+  }
   LOG(INFO) << "$$$$$$$$$$ model_executor_->forward is finished";
 
   ret = device_.synchronize_default_stream();
@@ -90,12 +100,13 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   ForwardOutput output;
   SampleOutput sample_output;
 
-  LOG(INFO) << "sampling_params.selected_token_idxes.defined() && "
+  LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes.defined() && "
                "inputs.micro_inputs[0].sampling_params.is_embeddings"
             << (sampling_params.selected_token_idxes.defined() &&
                 inputs.micro_inputs[0].sampling_params.is_embeddings);
-  LOG(INFO) << "inputs.micro_inputs[0].sampling_params.is_embeddings: "
-            << inputs.micro_inputs[0].sampling_params.is_embeddings;
+  LOG(INFO)
+      << "$$$$$$$$$$ inputs.micro_inputs[0].sampling_params.is_embeddings: "
+      << inputs.micro_inputs[0].sampling_params.is_embeddings;
   if (sampling_params.selected_token_idxes.defined() &&
       inputs.micro_inputs[0].sampling_params.is_embeddings) {
     sample_output.embeddings = embeddings;
@@ -103,11 +114,6 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   }
   output.embedding = embeddings;
 
-  // LOG(INFO) << "$$$$$$$$$$ output.do_sample:" << output.do_sample;
-  // output.do_sample = sampling_params.do_sample;
-  // LOG(INFO) << "$$$$$$$$$$ output.do_sample:" << output.do_sample;
-  // output.logprobs = sampling_params.logprobs;
-  // output.max_top_logprobs = sampling_params.max_top_logprobs;
   return output;
 }
 
