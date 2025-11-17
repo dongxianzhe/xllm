@@ -173,63 +173,6 @@ class EmbeddingVLMImpl<xllm::Qwen2_VLForEmbedding> : public EmbeddingVLM {
 };
 
 REGISTER_EMBEDDING_VLM_MODEL_WITH_VARNAME(qwen2_vl_embedding,
-                                          qwen2_vl_embedding,
+                                          qwen2_vl,
                                           Qwen2_VLForEmbedding);
-
-REGISTER_INPUT_PROCESSOR(qwen2_vl_embedding, Qwen2_5_VLInputProcessor);
-// REGISTER_CAUSAL_VLM_MODEL(qwen2_vl_embedding, Qwen2_VLForEmbedding);
-REGISTER_IMAGE_PROCESSOR(qwen2_vl_embedding, Qwen2VLImageProcessor);
-
-REGISTER_MODEL_ARGS(qwen2_vl_embedding, [&] {
-  // text config
-  // LOAD_ARG_OR(attention_dropout, "attention_dropout", 0.0);
-  LOAD_ARG_OR(bos_token_id, "bos_token_id", 151643);
-  LOAD_ARG_OR(eos_token_id, "eos_token_id", 151645);
-  LOAD_ARG_OR(vision_start_token_id, "vision_start_token_id", 151652);
-  LOAD_ARG_OR(vision_end_token_id, "vision_end_token_id", 151653);
-  LOAD_ARG_OR(vision_token_id, "vision_token_id", 151654);
-  LOAD_ARG_OR(image_token_id, "image_token_id", 151655);
-  LOAD_ARG_OR(video_token_id, "video_token_id", 151656);
-  LOAD_ARG_OR(hidden_act, "hidden_act", "silu");
-  LOAD_ARG_OR(hidden_size, "hidden_size", 3584);
-  // LOAD_ARG_OR(initializer_range, "initializer_range", 0.02);
-  LOAD_ARG_OR(intermediate_size, "intermediate_size", 18944);
-  LOAD_ARG_OR(max_position_embeddings, "max_position_embeddings", 32768);
-  LOAD_ARG_OR(max_window_layers, "max_window_layers", 28);
-  LOAD_ARG_OR(model_type, "model_type", "qwen2_vl");
-  LOAD_ARG_OR(n_heads, "num_attention_heads", 28);
-  LOAD_ARG_OR(n_layers, "num_hidden_layers", 28);
-  LOAD_ARG_OR(n_kv_heads, "num_key_value_heads", 4);
-  LOAD_ARG_OR(rms_norm_eps, "rms_norm_eps", 1e-06);
-  LOAD_ARG_OR(rope_theta, "rope_theta", 1000000.0f);
-  LOAD_ARG_OR(sliding_window, "sliding_window", 32768);
-  LOAD_ARG_OR(tie_word_embeddings, "tie_word_embeddings", false);
-  LOAD_ARG_OR(dtype, "torch_dtype", "bfloat16");
-  // LOAD_ARG_OR(transformers_version, "transformers_version", "4.41.2");
-  // LOAD_ARG_OR(use_cache, "use_cache", true);
-  LOAD_ARG_OR(use_sliding_window, "use_sliding_window", false);
-  LOAD_ARG_OR_FUNC(head_dim, "head_dim", [&] {
-    return args->hidden_size() / args->n_heads();
-  });
-
-  // vision_config
-  LOAD_ARG_OR(mm_num_hidden_layers, "vision_config.depth", 32);
-  // LOAD_ARG_OR(mm_hidden_act, "vision_config.hidden_act", "silu");
-  LOAD_ARG_OR(mm_hidden_size, "vision_config.embed_dim", 1280);
-  // LOAD_ARG_OR(mm_mlp_ratio, "vision_config.mlp_ratio", 4);
-  LOAD_ARG_OR(mm_num_attention_heads, "vision_config.num_heads", 16);
-  LOAD_ARG_OR(mm_num_channels, "vision_config.in_chans", 3);
-  LOAD_ARG_OR(mm_projection_dim, "vision_config.hidden_size", 3584);
-  LOAD_ARG_OR(mm_patch_size, "vision_config.patch_size", 14);
-  LOAD_ARG_OR(mm_spatial_merge_size, "vision_config.spatial_merge_size", 2);
-  LOAD_ARG_OR(mm_spatial_patch_size, "vision_config.spatial_patch_size", 14);
-  LOAD_ARG_OR(mm_temporal_patch_size, "vision_config.temporal_patch_size", 2);
-  LOAD_ARG_OR_FUNC(mm_head_dim, "head_dim", [&] {
-    return args->mm_hidden_size() / args->mm_num_attention_heads();
-  });
-
-  LOAD_ARG_OR(rope_scaling_rope_type, "rope_scaling.type", "mrope");
-  LOAD_ARG(rope_scaling_mrope_section, "rope_scaling.mrope_section");
-  LOAD_ARG_OR(vocab_size, "vocab_size", 152064);
-});
 }  // namespace xllm
