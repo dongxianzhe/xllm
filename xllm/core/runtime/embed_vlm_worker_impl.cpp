@@ -46,7 +46,7 @@ bool EmbedVLMWorkerImpl::init_model(ModelContext& context) {
   CHECK(model_ == nullptr) << "Model is already initialized.";
 
   context.set_image_embedding_mode(true);
-  model_ = create_vlm_model(context);
+  model_ = create_embeddingvlm_model(context);
   CHECK(model_ != nullptr) << "Failed to create model.";
   model_executor_ = std::make_unique<Executor>(
       model_.get(), context.get_model_args(), device_, options_);
@@ -78,14 +78,6 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   LOG(INFO) << "$$$$$$$$$$ hidden_states.sizes(): " << hidden_states.sizes();
   LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes"
             << sampling_params.selected_token_idxes;
-  if (sampling_params.selected_token_idxes.defined()) {
-    hidden_states = hidden_states.index_select(
-        /*dim=*/0,
-        sampling_params
-            .selected_token_idxes);  // todo remove this in by calling pooler
-    LOG(INFO) << "$$$$$$$$$$ hidden_states.sizes() after select: "
-              << hidden_states.sizes();
-  }
   LOG(INFO) << "$$$$$$$$$$ model_executor_->forward is finished";
 
   ret = device_.synchronize_default_stream();
@@ -95,7 +87,6 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
     return std::nullopt;
   }
 
-  auto embeddings = hidden_states;  // todo call pooler outside model
   // driver prepare model output
   ForwardOutput output;
   SampleOutput sample_output;
@@ -109,10 +100,13 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
       << inputs.micro_inputs[0].sampling_params.is_embeddings;
   if (sampling_params.selected_token_idxes.defined() &&
       inputs.micro_inputs[0].sampling_params.is_embeddings) {
+    EmbeddingVLM* em_model = dynamic_cast<EmbeddingVLM*>(model_.get());
+    auto embeddings =
+        em_model->pooler(hidden_states, sampling_params.selected_token_idxes);
     sample_output.embeddings = embeddings;
     output.sample_output = sample_output;
+    output.embedding = embeddings;
   }
-  output.embedding = embeddings;
 
   return output;
 }

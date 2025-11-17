@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/framework/model/embedding_lm.h"
+#include "core/framework/model/embedding_vlm.h"
 #include "models/llm/qwen2.h"
 #include "models/vlm/qwen2_vl.h"
 namespace xllm {
@@ -60,10 +60,7 @@ class Qwen2_VLForEmbeddingImpl : public torch::nn::Module {
         tokens[0], image_inputs, video_inputs, input_params[0]);
     input_params[0].input_embedding = inputs_embeds;
     auto emb = language_model_(tokens, positions, kv_caches, input_params);
-    LOG(INFO) << "$$$$$$$$$$ emb shape" << emb.sizes();
-    auto emb_out = pooler(emb, torch::Tensor());
-    LOG(INFO) << "$$$$$$$$$$ emb_out shape" << emb_out.sizes();
-    return emb_out;
+    return emb;
   }
 
   torch::Tensor pooler(const torch::Tensor& hidden_states,
@@ -118,8 +115,69 @@ class Qwen2_VLForEmbeddingImpl : public torch::nn::Module {
 };
 TORCH_MODULE(Qwen2_VLForEmbedding);
 
+template <>
+class EmbeddingVLMImpl<xllm::Qwen2_VLForEmbedding> : public EmbeddingVLM {
+ public:
+  EmbeddingVLMImpl(xllm::Qwen2_VLForEmbedding model,
+                   const torch::TensorOptions& options)
+      : model_(std::move(model)), options_(options) {}
+
+  torch::Tensor forward(
+      const std::vector<torch::Tensor>& tokens,
+      const std::vector<torch::Tensor>& positions,
+      std::vector<KVCache>& kv_caches,
+      const std::vector<ModelInputParams>& parameters) override {
+    return model_->forward(tokens, positions, kv_caches, parameters);
+  }
+
+  torch::Tensor logits(const torch::Tensor& hidden_states,
+                       const torch::Tensor& seleted_idxes) override {
+    return model_->logits(hidden_states, seleted_idxes);
+  }
+
+  torch::Tensor pooler(const torch::Tensor& hidden_states,
+                       const torch::Tensor& seleted_idxes) override {
+    return model_->pooler(hidden_states, seleted_idxes);
+  }
+
+  void load_model(std::unique_ptr<ModelLoader> loader) override {
+    model_->load_model(std::move(loader));
+  }
+
+  torch::Device device() const override { return model_->device(); }
+
+  const torch::TensorOptions& options() const override {
+    return model_->options();
+  }
+
+  virtual void prepare_expert_weight(int32_t layer_id,
+                                     const std::vector<int32_t>& expert_ids) {
+    return;
+  }
+  virtual void update_expert_weight(int32_t layer_id) { return; }
+
+  // Delegate head/embedding accessors to underlying model implementation.
+  layer::LmHead get_lm_head() override { return model_->get_lm_head(); }
+  void set_lm_head(layer::LmHead& head) override { model_->set_lm_head(head); }
+  std::vector<layer::WordEmbedding> get_word_embedding() override {
+    return model_->get_word_embedding();
+  }
+  void set_word_embedding(
+      std::vector<layer::WordEmbedding>& embedding) override {
+    model_->set_word_embedding(embedding);
+  }
+
+ private:
+  xllm::Qwen2_VLForEmbedding model_;
+  torch::TensorOptions options_;
+};
+
+REGISTER_EMBEDDING_VLM_MODEL_WITH_VARNAME(qwen2_vl_embedding,
+                                          qwen2_vl_embedding,
+                                          Qwen2_VLForEmbedding);
+
 REGISTER_INPUT_PROCESSOR(qwen2_vl_embedding, Qwen2_5_VLInputProcessor);
-REGISTER_CAUSAL_VLM_MODEL(qwen2_vl_embedding, Qwen2_VLForEmbedding);
+// REGISTER_CAUSAL_VLM_MODEL(qwen2_vl_embedding, Qwen2_VLForEmbedding);
 REGISTER_IMAGE_PROCESSOR(qwen2_vl_embedding, Qwen2VLImageProcessor);
 
 REGISTER_MODEL_ARGS(qwen2_vl_embedding, [&] {
