@@ -394,12 +394,20 @@ void Sequence::add_shared_host_kv_blocks(std::vector<Block>&& blocks) {
 }
 
 bool Sequence::finished() const {
+  LOG(INFO) << "$$$$$$$$$$ Sequence::finished() is called";
   // return the cached finish status
   if (!finish_status_invalidated_) {
+    LOG(INFO) << "$$$$$$$$$$ Sequence::finished() is called "
+                 "finish_status_invalidated_"
+              << finish_status_invalidated_;
     return finished_;
   }
 
   // Embedding sequence never be finished until it updates its embeddings
+  LOG(INFO) << "$$$$$$$$$$ finish_status_invalidated_ && "
+               "sequence_params_.sampling_param->is_embeddings"
+            << finish_status_invalidated_ &&
+      sequence_params_.sampling_param->is_embeddings;
   if (finish_status_invalidated_ &&
       sequence_params_.sampling_param->is_embeddings) {
     return false;
@@ -410,6 +418,8 @@ bool Sequence::finished() const {
 
   auto finish_reason =
       sequence_params_.stopping_checker->check(tokens(), num_prompt_tokens_);
+  LOG(INFO) << "$$$$$$$$$$ finish_reason: "
+            << finish_reason.to_string().value_or("nullopt");
   if (finish_reason != FinishReason::NONE) {
     finish_reason_ = finish_reason;
     finished_ = true;

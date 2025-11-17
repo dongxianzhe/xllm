@@ -170,6 +170,8 @@ void Batch::process_sample_output(const SampleOutput& sample_output,
       LOG(INFO)
           << "$$$$$$$$$$ weather sequence is finished after update_embeddings: "
           << seq->finished();
+      LOG(INFO) << "$$$$$$$$$$ seq->finish_reason()"
+                << seq->finish_reason().to_string().value_or("nullopt");
     }
   }
 

@@ -42,6 +42,7 @@ StoppingChecker::StoppingChecker(
 
 FinishReason StoppingChecker::check(const Slice<int32_t>& token_ids,
                                     size_t num_prompt_tokens) const {
+  LOG(INFO) << "$$$$$$$$$$ StoppingChecker::check is called";
   CHECK(!token_ids.empty());
 
   // if enable_schedule_overlap, there might be pre scheduled fake token -1
