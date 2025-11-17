@@ -38,9 +38,7 @@ namespace xllm {
 EmbedVLMWorkerImpl::EmbedVLMWorkerImpl(const ParallelArgs& parallel_args,
                                        const torch::Device& device,
                                        const runtime::Options& options)
-    : WorkerImpl(parallel_args, device, options) {
-  LOG(INFO) << "$$$$$$$$$$ EmbedVLMWorkerImpl is initid";
-}
+    : WorkerImpl(parallel_args, device, options) {}
 
 bool EmbedVLMWorkerImpl::init_model(ModelContext& context) {
   CHECK(model_ == nullptr) << "Model is already initialized.";
@@ -68,17 +66,10 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   auto params = inputs.micro_inputs[0].input_params.to(device_);
   auto sampling_params =
       inputs.micro_inputs[0].sampling_params.to(device_, dtype_);
-  LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes: "
-            << sampling_params.selected_token_idxes;
 
-  LOG(INFO) << "$$$$$$$$$$ model_executor_->forward is called";
   // call model executor forward to get hidden states
   auto hidden_states = model_executor_->forward(
       {flatten_tokens}, {flatten_positions}, kv_caches_, {params});
-  LOG(INFO) << "$$$$$$$$$$ hidden_states.sizes(): " << hidden_states.sizes();
-  LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes"
-            << sampling_params.selected_token_idxes;
-  LOG(INFO) << "$$$$$$$$$$ model_executor_->forward is finished";
 
   ret = device_.synchronize_default_stream();
   COUNTER_ADD(execution_latency_seconds_model, timer.elapsed_seconds());
@@ -91,13 +82,6 @@ std::optional<ForwardOutput> EmbedVLMWorkerImpl::step(
   ForwardOutput output;
   SampleOutput sample_output;
 
-  LOG(INFO) << "$$$$$$$$$$ sampling_params.selected_token_idxes.defined() && "
-               "inputs.micro_inputs[0].sampling_params.is_embeddings"
-            << (sampling_params.selected_token_idxes.defined() &&
-                inputs.micro_inputs[0].sampling_params.is_embeddings);
-  LOG(INFO)
-      << "$$$$$$$$$$ inputs.micro_inputs[0].sampling_params.is_embeddings: "
-      << inputs.micro_inputs[0].sampling_params.is_embeddings;
   if (sampling_params.selected_token_idxes.defined() &&
       inputs.micro_inputs[0].sampling_params.is_embeddings) {
     EmbeddingVLM* em_model = dynamic_cast<EmbeddingVLM*>(model_.get());

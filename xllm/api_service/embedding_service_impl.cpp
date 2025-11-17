@@ -94,11 +94,6 @@ void EmbeddingServiceImpl::process_async_impl(
 
   // TODO only support input_str for now
   auto& input = rpc_request.input();
-  LOG(INFO) << "$$$$$$$$$$" << rpc_request.DebugString();
-  LOG(INFO) << "$$$$$$$$$$"
-            << "request_params.max_tokens=" << request_params.max_tokens;
-  LOG(INFO) << "$$$$$$$$$$"
-            << "request_params.is_embeddings=" << request_params.is_embeddings;
 
   auto saved_request_id = request_params.request_id;
   // schedule the request
@@ -133,16 +128,10 @@ MMEmbeddingServiceImpl::MMEmbeddingServiceImpl(
 
 void MMEmbeddingServiceImpl::process_async_impl(
     std::shared_ptr<MMEmbeddingCall> call) {
-  LOG(INFO)
-      << "$$$$$$$$$$ MMEmbeddingServiceImpl::process_async_impl is called";
   const auto& rpc_request = call->request();
   // check if model is supported
   const auto& model = rpc_request.model();
-  for (const auto& model : models_) {
-    LOG(INFO) << "$$$$$$$$$$" << "support model:" << model;
-  }
   if (!models_.contains(model)) {
-    LOG(INFO) << "$$$$$$$$$$ " << model << "not supported";
     call->finish_with_error(StatusCode::UNKNOWN, "Model not supported");
     return;
   }
@@ -153,11 +142,6 @@ void MMEmbeddingServiceImpl::process_async_impl(
       rpc_request, call->get_x_request_id(), call->get_x_request_time());
 
   auto& req_messages = rpc_request.messages();
-  LOG(INFO) << "$$$$$$$$$$" << rpc_request.DebugString();
-  LOG(INFO) << "$$$$$$$$$$"
-            << "mm request_params.max_tokens=" << request_params.max_tokens;
-  LOG(INFO) << "$$$$$$$$$$" << "mm request_params.is_embeddings="
-            << request_params.is_embeddings;
 
   std::vector<Message> messages;
   MMInput mm_inputs;
@@ -169,7 +153,6 @@ void MMEmbeddingServiceImpl::process_async_impl(
     return;
   }
 
-  LOG(INFO) << "$$$$$$$$$$ call master_->handle_request";
   // schedule the request
   master_->handle_request(
       std::move(messages),
@@ -180,7 +163,6 @@ void MMEmbeddingServiceImpl::process_async_impl(
        request_id = request_params.request_id,
        created_time = absl::ToUnixSeconds(absl::Now())](
           const RequestOutput& req_output) -> bool {
-        LOG(INFO) << "$$$$$$$$$$" << "mm request is finished" << std::flush;
         if (req_output.status.has_value()) {
           const auto& status = req_output.status.value();
           if (!status.ok()) {

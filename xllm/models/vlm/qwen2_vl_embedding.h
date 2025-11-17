@@ -20,14 +20,9 @@ class Qwen2_VLForEmbeddingImpl : public torch::nn::Module {
       const std::optional<Qwen2_VLImageInputs>& image_input,
       const std::optional<Qwen2_VLVideoInputs>& video_input,
       const ModelInputParams& input_params) {
-    LOG(INFO) << "$$$$$$$$$$ before "
-                 "language_model_->get_input_embeddings(input_ids);";
     auto inputs_embeds = language_model_->get_input_embeddings(input_ids);
-    LOG(INFO)
-        << "$$$$$$$$$$ after language_model_->get_input_embeddings(input_ids);";
     if (image_input) {
       // visual
-      LOG(INFO) << "$$$$$$$$$$ before auto image_embeds = visual_()";
       auto image_embeds = visual_(image_input->pixel_values.to(options_),
                                   image_input->image_grid_thw,
                                   input_params);

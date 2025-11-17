@@ -168,21 +168,6 @@ void VLMMaster::handle_request(const std::vector<Message>& messages,
                                const MMInput& mm_inputs,
                                RequestParams sp,
                                OutputCallback callback) {
-  LOG(INFO) << "$$$$$$$$$$VLMMaster::handle_request is called. ";
-  for (const auto& message : messages) {
-    LOG(INFO) << "$$$$$$$$$$ role" << message.role;
-    if (std::holds_alternative<std::string>(message.content)) {
-      LOG(INFO) << "$$$$$$$$$$ message content is string"
-                << std::get<std::string>(message.content);
-    } else if (std::holds_alternative<Message::MMContentVec>(message.content)) {
-      LOG(INFO) << "$$$$$$$$$$ message.content is Message::MMContentVec";
-      const auto& contentVec = std::get<Message::MMContentVec>(message.content);
-      for (const auto& item : contentVec) {
-        LOG(INFO) << "$$$$$$$$$$ MMContent type: " << item.type;
-      }
-    }
-  }
-
   MMData mm_data;
   if (!mm_inputs.empty() && !image_processor_->process(mm_inputs, mm_data)) {
     LOG(ERROR) << " image processor process failed";

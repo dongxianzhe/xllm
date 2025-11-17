@@ -152,15 +152,7 @@ void Batch::process_sample_output(const SampleOutput& sample_output,
       CHECK_LT(output_idx, num_seqs);
       auto cur_seq_embed =
           safe_to(sample_output.embeddings[output_idx++], torch::kFloat32);
-      LOG(INFO) << "$$$$$$$$$$ sequence is update_embeddings";
-      LOG(INFO) << "$$$$$$$$$$ cur_seq_embed.sizes(): "
-                << cur_seq_embed.sizes();
       seq->update_embeddings(cur_seq_embed);
-      LOG(INFO)
-          << "$$$$$$$$$$ weather sequence is finished after update_embeddings: "
-          << seq->finished();
-      LOG(INFO) << "$$$$$$$$$$ seq->finish_reason()"
-                << seq->finish_reason().to_string().value_or("nullopt");
     }
   }
 
