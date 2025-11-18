@@ -601,7 +601,6 @@ REGISTER_MODEL_ARGS(qwen2_vl, [&] {
 
   // vision_config
   LOAD_ARG_OR(mm_num_hidden_layers, "vision_config.depth", 32);
-  //?
   // LOAD_ARG_OR(mm_hidden_act, "vision_config.hidden_act", "silu");
   LOAD_ARG_OR(mm_hidden_size, "vision_config.embed_dim", 1280);
   // LOAD_ARG_OR(mm_mlp_ratio, "vision_config.mlp_ratio", 4);
