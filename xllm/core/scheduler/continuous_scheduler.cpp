@@ -962,6 +962,12 @@ void ContinuousScheduler::step(const absl::Duration& timeout) {
       return;
     }
 
+    LOG(INFO) << "$$$$$$$$$$ batch.size() " << batch.size();
+    for (const auto& b : batch) {
+      LOG(INFO) << "============== batch info ================";
+      b.log();
+    }
+
     if (!options_.enable_pd_ooc()) {
       engine_->step(batch);
     } else {

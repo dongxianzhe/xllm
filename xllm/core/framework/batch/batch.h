@@ -152,6 +152,27 @@ class Batch {
   BatchForwardType batch_forward_type_;
 
   uint64_t batch_id_ = UNINITIALIZED_BATCH_ID;
+
+ public:
+  void log() const {
+    LOG(INFO) << "$$$$$$$$$$ batch_id_ " << batch_id_;
+    LOG(INFO) << "$$$$$$$$$$ sequences_.size() " << sequences_.size();
+    for (auto* seq : sequences_) {
+      seq->log();
+    }
+    // std::vector<SequencesGroup*> sequence_groups_;
+    LOG(INFO) << "$$$$$$$$$$ swap_block_transfer_infos_->size() "
+              << swap_block_transfer_infos_->size();
+    // std::vector<BlockTransferInfo>* swap_block_transfer_infos_ = nullptr;
+    std::ostringstream oss;
+    for (int i = 0; i < allowed_max_tokens_.size(); i++) {
+      oss << allowed_max_tokens_[i] << " ";
+    }
+    LOG(INFO) << "allowed_max_tokens_ " << oss.str();
+    LOG(INFO) << "batch_forward_type_: " << batch_forward_type_.to_string();
+    // std::vector<torch::Tensor> input_embeddings_vec_;
+    // std::vector<MMData> mm_data_vec_;
+  }
 };
 
 }  // namespace xllm

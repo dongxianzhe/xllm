@@ -355,6 +355,14 @@ class Sequence final {
   // kvcache store copy async result
   std::atomic<bool> termination_flag_{false};
   std::vector<std::shared_ptr<std::atomic<uint32_t>>> prefetch_results_;
+
+ public:
+  void log() const {
+    LOG(INFO) << "Sequence index_: " << index_
+              << ", num_tokens_: " << num_tokens_
+              << ", num_prompt_tokens_: " << num_prompt_tokens_
+              << ", dp_rank_: " << dp_rank_ << ", seq_id_: " << seq_id_;
+  }
 };
 
 }  // namespace xllm
