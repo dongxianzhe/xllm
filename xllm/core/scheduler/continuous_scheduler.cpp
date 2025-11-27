@@ -882,6 +882,7 @@ std::vector<Batch> ContinuousScheduler::prepare_batch() {
 
 std::vector<Batch> ContinuousScheduler::schedule_request(
     const absl::Duration& timeout) {
+  LOG(INFO) << "$$$$$$$$$$ Scheduling new batch of requests...";
   const auto deadline = absl::Now() + timeout;
   std::vector<Batch> batch;
   while (true) {

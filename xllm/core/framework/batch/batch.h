@@ -160,6 +160,8 @@ class Batch {
     for (auto* seq : sequences_) {
       seq->log();
     }
+    LOG(INFO) << "$$$$$$$$$$ sequence_groups_.size() "
+              << sequence_groups_.size();
     // std::vector<SequencesGroup*> sequence_groups_;
     LOG(INFO) << "$$$$$$$$$$ swap_block_transfer_infos_->size() "
               << swap_block_transfer_infos_->size();
@@ -168,8 +170,9 @@ class Batch {
     for (int i = 0; i < allowed_max_tokens_.size(); i++) {
       oss << allowed_max_tokens_[i] << " ";
     }
-    LOG(INFO) << "allowed_max_tokens_ " << oss.str();
-    LOG(INFO) << "batch_forward_type_: " << batch_forward_type_.to_string();
+    LOG(INFO) << "$$$$$$$$$$ allowed_max_tokens_ " << oss.str();
+    LOG(INFO) << "$$$$$$$$$$ batch_forward_type_: "
+              << batch_forward_type_.to_string();
     // std::vector<torch::Tensor> input_embeddings_vec_;
     // std::vector<MMData> mm_data_vec_;
   }

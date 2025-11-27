@@ -358,10 +358,12 @@ class Sequence final {
 
  public:
   void log() const {
-    LOG(INFO) << "Sequence index_: " << index_
+    LOG(INFO) << "$$$$$$$$$$ Sequence index_: " << index_
               << ", num_tokens_: " << num_tokens_
               << ", num_prompt_tokens_: " << num_prompt_tokens_
-              << ", dp_rank_: " << dp_rank_ << ", seq_id_: " << seq_id_;
+              << ", dp_rank_: " << dp_rank_ << ", seq_id_: " << seq_id_
+              << ", input embedding shape: " << input_embedding_.sizes();
+    mm_data_.log();
   }
 };
 

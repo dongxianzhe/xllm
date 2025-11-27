@@ -138,6 +138,48 @@ struct MMData {
 
   uint32_t ty_ = MMType::NONE;
   MMDict data_;
+
+ public:
+  void log() const {
+    if (!valid()) {
+      LOG(INFO) << "$$$$$$$$$$ Invalid MMData object";
+      return;
+    }
+
+    LOG(INFO) << "$$$$$$$$$$ MMData (type: " << ty_ << "):";
+
+    for (const auto& [key, value] : data_) {
+      LOG(INFO) << "$$$$$$$$$$  Key: " << key << ", Value: ";
+
+      // Check if the value is a tensor
+      if (std::holds_alternative<torch::Tensor>(value)) {
+        const auto& tensor = std::get<torch::Tensor>(value);
+        LOG(INFO) << "$$$$$$$$$$ Tensor (shape: " << tensor.sizes()
+                  << ", dtype: " << tensor.dtype() << "): "
+                  << tensor.to(torch::kCPU)
+                         .to(torch::kFloat)
+                         .to(torch::kCPU)
+                         .mean()
+                         .item<float>();
+      }
+      // Check if the value is a vector of tensors
+      else if (std::holds_alternative<std::vector<torch::Tensor>>(value)) {
+        const auto& tensor_vec = std::get<std::vector<torch::Tensor>>(value);
+        LOG(INFO) << "$$$$$$$$$$ Tensor Vector of size: " << tensor_vec.size();
+        for (const auto& tensor : tensor_vec) {
+          LOG(INFO) << "$$$$$$$$$$    Tensor (shape: " << tensor.sizes()
+                    << ", dtype: " << tensor.dtype() << "): "
+                    << tensor.to(torch::kCPU)
+                           .to(torch::kFloat)
+                           .to(torch::kCPU)
+                           .mean()
+                           .item<float>();
+        }
+      } else {
+        LOG(INFO) << "$$$$$$$$$$ Unknown type";
+      }
+    }
+  }
 };
 
 }  // namespace xllm
