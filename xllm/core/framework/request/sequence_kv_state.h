@@ -82,6 +82,23 @@ class KVCacheState {
 
   // shared blocks number of the sequence.
   uint32_t num_owned_shared_blocks_ = 0;
+
+ public:
+  void log() const {
+    std::ostringstream oss;
+    for (int i = 0; i < blocks_.size(); i++) {
+      oss << "(" << blocks_[i].id() << "," << blocks_[i].ref_count() << ") ";
+    }
+    LOG(INFO) << "KVCacheState: kv_cache_tokens_num_: " << kv_cache_tokens_num_
+              << ", num_kv_blocks(): " << num_kv_blocks()
+              << ", current_max_tokens_capacity(): "
+              << current_max_tokens_capacity() << ", blocks_: " << oss.str()
+              << ", src_blocks_.size(): " << src_blocks_.size()
+              << ", shared_kv_blocks_num(): " << shared_kv_blocks_num()
+              << ", need_swap_: " << need_swap_
+              << ", transfer_kv_info_ has value: "
+              << transfer_kv_info_.has_value();
+  }
 };
 
 }  // namespace xllm

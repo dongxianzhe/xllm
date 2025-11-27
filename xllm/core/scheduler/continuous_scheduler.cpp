@@ -631,6 +631,8 @@ std::vector<Batch> ContinuousScheduler::prepare_batch() {
   std::shared_ptr<Request> request;
   // read from request queue then push to waiting priority queue
   while (request_queue_.read(request)) {
+    LOG(INFO) << "$$$$$$$$$$ request from request_queue, request_id: "
+              << request->request_id();
     CHECK(request);
 
     // expand sequences to the target number if prefix cache is disabled.

@@ -364,6 +364,10 @@ class Sequence final {
               << ", dp_rank_: " << dp_rank_ << ", seq_id_: " << seq_id_
               << ", input embedding shape: " << input_embedding_.sizes();
     mm_data_.log();
+    LOG(INFO) << "$$$$$$$$$$ KV state:";
+    kv_state_.log();
+    LOG(INFO) << "$$$$$$$$$$ Host KV state:";
+    host_kv_state_.log();
   }
 };
 
