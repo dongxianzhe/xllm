@@ -663,6 +663,8 @@ std::vector<Batch> ContinuousScheduler::prepare_batch() {
     std::shared_ptr<Request> request = *it;
     request->update_connection_status();
     if (request->finished() || request->cancelled()) {
+      LOG(INFO) << "$$$$$$$$$$ request finished/cancelled, request_id: "
+                << request->request_id();
       kv_cache_manager_->deallocate(request.get());
       // release the ownership of the request
       finished_requests.emplace_back(request);
