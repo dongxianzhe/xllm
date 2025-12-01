@@ -48,6 +48,25 @@ class Qwen2_5_VLForMMEmbeddingImpl : public torch::nn::Module {
                                       QWen2ForCausalLM(context));  // not load
   }
 
+  std::vector<int> get_images_size(torch::Tensor image_grid_thw) {
+    if (!image_grid_thw.defined()) return {};
+
+    int merge_size = model_args_.mm_image_merge_size();
+    int merge_length = merge_size * merge_size;
+
+    std::vector<int> images_size;
+    int count = image_grid_thw.sizes()[0];
+    images_size.reserve(count);
+    for (int idx = 0; idx < count; ++idx) {
+      int n_image_tokens =
+          image_grid_thw[idx].prod().item<int>() / merge_length;
+      LOG(INFO) << "$$$$$$$$$$ get_images_size n_image_tokens: "
+                << n_image_tokens;
+      images_size.emplace_back(n_image_tokens);
+    }
+    return images_size;
+  }
+
   std::vector<torch::Tensor> encode(const ModelInputParams& input_params) {
     torch::NoGradGuard no_grad;
     const auto& mm_data = input_params.mm_data;
@@ -69,7 +88,20 @@ class Qwen2_5_VLForMMEmbeddingImpl : public torch::nn::Module {
     auto image_embeds = visual_(image_inputs->pixel_values.to(options_),
                                 image_inputs->image_grid_thw,
                                 input_params);
-    std::vector<torch::Tensor> mm_embeddings{image_embeds};  // TODO split image
+
+    std::vector<torch::Tensor> mm_embeddings;
+
+    std::vector<int> image_sizes = get_images_size(image_grid_thw);
+    mm_embeddings.reserve(image_sizes.size());
+
+    int token_start_idx = 0;
+    for (int image_size : image_sizes) {
+      auto image_embed =
+          image_embeds.slice(0, token_start_idx, token_start_idx + image_size);
+      mm_embeddings.emplace_back(image_embed);
+      token_start_idx += image_size;
+    }
+
     return mm_embeddings;
   };
 
