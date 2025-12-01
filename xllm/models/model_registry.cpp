@@ -115,6 +115,20 @@ void ModelRegistry::register_vlm_embedding_factory(
   }
 }
 
+void ModelRegistry::register_vlm_mm_embedding_factory(
+    const std::string& name,
+    MMEmbeddingVLMFactory factory) {
+  ModelRegistry* instance = get_instance();
+
+  if (instance->model_registry_[name].mm_embedding_vlm_factory != nullptr) {
+    SAFE_LOG_WARNING("mm embedding vlm factory for " << name
+                                                     << " already registered.");
+  } else {
+    instance->model_registry_[name].mm_embedding_vlm_factory = factory;
+    instance->model_backend_[name] = "vlm";
+  }
+}
+
 void ModelRegistry::register_dit_model_factory(const std::string& name,
                                                DiTModelFactory factory) {
   ModelRegistry* instance = get_instance();
@@ -214,6 +228,13 @@ EmbeddingVLMFactory ModelRegistry::get_embeddingvlm_factory(
   ModelRegistry* instance = get_instance();
 
   return instance->model_registry_[name].embedding_vlm_factory;
+}
+
+MMEmbeddingVLMFactory ModelRegistry::get_mm_embedding_vlm_factory(
+    const std::string& name) {
+  ModelRegistry* instance = get_instance();
+
+  return instance->model_registry_[name].mm_embedding_vlm_factory;
 }
 
 DiTModelFactory ModelRegistry::get_dit_model_factory(const std::string& name) {
