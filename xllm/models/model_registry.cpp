@@ -338,6 +338,21 @@ std::unique_ptr<EmbeddingVLM> create_vlm_embedding_model(
   return nullptr;
 }
 
+std::unique_ptr<MMEmbeddingVLM> create_vlm_mm_embedding_model(
+    const ModelContext& context) {
+  // get the factory function for the model type from model registry
+  auto factory = ModelRegistry::get_mm_embedding_vlm_factory(
+      context.get_model_args().model_type());
+  if (factory) {
+    return factory(context);
+  }
+
+  LOG(ERROR) << "Unsupported model type: "
+             << context.get_model_args().model_type();
+
+  return nullptr;
+}
+
 std::unique_ptr<DiTModel> create_dit_model(const DiTModelContext& context) {
   // get the factory function for the model type from model registry
   auto factory = ModelRegistry::get_dit_model_factory(context.model_type());
