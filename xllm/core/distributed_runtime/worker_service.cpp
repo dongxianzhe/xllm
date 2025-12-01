@@ -84,6 +84,7 @@ void WorkerService::step(ForwardInput& fwd_input,
     auto forward_outputs = std::move(future).get();
     // convert ForwardOutput to proto::ForwardOutput which contain Tokens.
     if (forward_outputs) {
+      LOG(INFO) << "$$$$$$$$$$ WorkerService::step got model output";
       DCHECK(forward_outputs.has_value()) << "Failed to execute model";
       const auto& sample_output = forward_outputs.value().sample_output;
       const auto& beam_search_output =
@@ -177,6 +178,7 @@ void WorkerService::create_polling_shm_thread(
 
           fwd_input = std::move(inputs[0]);
 
+          LOG(INFO) << "$$$$$$$$$$ worker service step is called";
           step(fwd_input,
                next_tokens,
                logprobs,

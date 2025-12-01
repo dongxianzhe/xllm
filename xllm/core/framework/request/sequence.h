@@ -158,6 +158,8 @@ class Sequence final {
     return num_tokens_ > decoder_.output_offset();
   }
 
+  // update mm embeddings to the sequence
+  void update_mm_embeddings(const std::vector<torch::Tensor>& mm_embeddings);
   // update embeddings to the sequence
   void update_embeddings(const torch::Tensor& embedding);
   int32_t get_embedding_id() const { return embedding_id_; }
@@ -305,6 +307,7 @@ class Sequence final {
   // embeddings of the sequence
   torch::Tensor output_embedding_;
 
+  std::vector<torch::Tensor> output_mm_embeddings_;
   // number of tokens in the sequence
   size_t num_tokens_ = 0;
 
