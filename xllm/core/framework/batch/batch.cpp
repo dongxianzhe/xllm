@@ -240,6 +240,18 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
       // always append a token, maybe true or fake token
       append_token_for_sequence(seq, t, t_idx, replace_fake_token);
 
+      // LOG(INFO) << "$$$$$$$$$$ Batch::process_sample_output is called
+      // sample_output.mm_embeddings.size(): " <<
+      // sample_output.mm_embeddings.size(); if
+      // (sample_output.mm_embeddings.size() > 0) {
+      //   // TODO split requests' mm embeddings
+      //   for (auto* seq : sequences_) {
+      //     seq->update_mm_embeddings(sample_output.mm_embeddings);
+      //   }
+      // }
+      // LOG(INFO) << "$$$$$$$$$$
+      // raw_sam_output.tokens[t_idx].mm_embeddings.size(): " <<
+      // raw_sam_output.tokens[t_idx].mm_embeddings.size();
       if (raw_sam_output.tokens[t_idx].embeddings.size() > 0) {
         torch::Tensor embeddings =
             torch::tensor(raw_sam_output.tokens[t_idx].embeddings);

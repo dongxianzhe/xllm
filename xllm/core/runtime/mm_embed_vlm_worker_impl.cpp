@@ -70,6 +70,7 @@ std::optional<ForwardOutput> MMEmbedVLMWorkerImpl::step(
   // call model executor forward to get hidden states
   auto hidden_states = model_executor_->forward(
       flatten_tokens, flatten_positions, kv_caches_, params);
+  LOG(INFO) << "$$$$$$$$$$ hidden_states size: " << hidden_states.sizes();
 
   ret = device_.synchronize_default_stream();
   COUNTER_ADD(execution_latency_seconds_model, timer.elapsed_seconds());
@@ -82,14 +83,30 @@ std::optional<ForwardOutput> MMEmbedVLMWorkerImpl::step(
   ForwardOutput output;
   SampleOutput sample_output;
 
-  if (sampling_params.selected_token_idxes.defined() &&
-      input.sampling_params.is_embeddings) {
+  if (input.sampling_params.is_embeddings) {
     // TODO get encoder output
+    std::vector<int> n_image_tokens = {66, 1156};
+    std::vector<int> cu_n_image_tokens = {0};
+    for (int i = 0; i < n_image_tokens.size(); ++i) {
+      cu_n_image_tokens.push_back(cu_n_image_tokens.back() + n_image_tokens[i]);
+    }
+    std::vector<torch::Tensor> mm_embeddings;
+    for (int i = 0; i < n_image_tokens.size(); i++) {
+      mm_embeddings.push_back(hidden_states.slice(
+          0, cu_n_image_tokens[i], cu_n_image_tokens[i + 1]));
+    }
+    for (auto& emb : mm_embeddings) {
+      LOG(INFO) << "$$$$$$$$$$ mm_embedding size: " << emb.sizes();
+      LOG(INFO) << "$$$$$$$$$$ mm_embedding first ten value: "
+                << emb.view(-1).slice(0, 0, 10);
+    }
+
     auto embeddings =
         torch::arange(16, torch::dtype(torch::kFloat)).reshape({1, 16});
     sample_output.embeddings = embeddings;
+    sample_output.mm_embeddings = mm_embeddings;
     output.sample_output = sample_output;
-    output.embedding = embeddings;
+    // output.embedding = embeddings;
   }
 
   return output;

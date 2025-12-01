@@ -213,6 +213,21 @@ void Sequence::update_token(size_t index, const Token& token) {
   finish_status_invalidated_ = true;
 }
 
+void Sequence::update_mm_embeddings(
+    const std::vector<torch::Tensor>& mm_embeddings) {
+  // cannot update embeddings to a finished sequence
+  if (finished_) {
+    return;
+  }
+  LOG(INFO) << "$$$$$$$$$$ mm_embeddings.size(): " << mm_embeddings.size();
+  output_mm_embeddings_ = mm_embeddings;
+  CHECK(sequence_params_.sampling_param->is_embeddings);
+  // invalidate the finish status once a new token is appended
+  finish_status_invalidated_ = false;
+  finished_ = true;
+  finish_reason_ = FinishReason::STOP;
+}
+
 void Sequence::update_embeddings(const torch::Tensor& embeddings) {
   // cannot update embeddings to a finished sequence
   if (finished_) {
@@ -311,6 +326,23 @@ SequenceOutput Sequence::generate_output(const Tokenizer& tokenizer) {
   AUTO_COUNTER(detokenization_latency_seconds_non_stream);
 
   // build embeddings for output
+  LOG(INFO) << "$$$$$$$$$$ sequence_params_.sampling_param->is_embeddings"
+            << sequence_params_.sampling_param->is_embeddings;
+  LOG(INFO) << "$$$$$$$$$$ output_mm_embeddings_.size()"
+            << output_mm_embeddings_.size();
+  if (sequence_params_.sampling_param->is_embeddings &&
+      output_mm_embeddings_.size() > 0) {
+    SequenceOutput output;
+    output.index = index_;
+    Slice<float> embedding_slice = {output_mm_embeddings_[0].data_ptr<float>(),
+                                    output_mm_embeddings_[0].size(0)};
+    for (auto& emb : output_mm_embeddings_) {
+      LOG(INFO) << "$$$$$$$$$$ mm_embedding size: " << emb.sizes();
+      LOG(INFO) << "$$$$$$$$$$ mm_embedding first ten value: "
+                << emb.view(-1).slice(0, 0, 10);
+    }
+    return output;
+  }
   if (sequence_params_.sampling_param->is_embeddings) {
     SequenceOutput output;
     output.index = index_;

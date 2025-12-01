@@ -70,9 +70,12 @@ class Qwen2_5_VLInputProcessor : public InputProcessor {
     int total_image_token = 0;
     if (image_grid_thw.defined()) {
       auto count = image_grid_thw.sizes()[0];
-      for (int idx = 0; idx < count; ++idx)
-        total_image_token +=
+      for (int idx = 0; idx < count; ++idx) {
+        int n_image_tokens =
             image_grid_thw[idx].prod().item<int>() / merge_length;
+        total_image_token += n_image_tokens;
+        LOG(INFO) << "$$$$$$$$$$ n_image_tokens: " << n_image_tokens;
+      }
     }
 
     int total_video_token = 0;
@@ -709,6 +712,16 @@ class Qwen2_5_VLForConditionalGenerationImpl : public torch::nn::Module {
         register_module("language_model", QWen2ForCausalLM(context));
   }
 
+  torch::Tensor get_visual_embedding(
+      const std::optional<Qwen2_5_VLImageInputs>& image_input,
+      const ModelInputParams& input_params) {
+    CHECK(image_input.has_value())
+        << "image_input is required for get_visual_embedding";
+    return visual_(image_input->pixel_values.to(options_),
+                   image_input->image_grid_thw,
+                   input_params);
+  }
+
   torch::Tensor get_input_embeddings(
       torch::Tensor input_ids,
       const std::optional<Qwen2_5_VLImageInputs>& image_input,
@@ -720,6 +733,7 @@ class Qwen2_5_VLForConditionalGenerationImpl : public torch::nn::Module {
       auto image_embeds = visual_(image_input->pixel_values.to(options_),
                                   image_input->image_grid_thw,
                                   input_params);
+      LOG(INFO) << "$$$$$$$$$$ image_embeds size: " << image_embeds.sizes();
       // merge
       auto is_multimodal = torch::isin(input_ids, model_args_.image_token_id());
       inputs_embeds.index_put_({is_multimodal}, image_embeds);

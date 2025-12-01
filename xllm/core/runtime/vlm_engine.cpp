@@ -330,6 +330,8 @@ ForwardOutput VLMEngine::step(std::vector<Batch>& batch) {
   // update dp related global paramters and then execute model
   for (auto worker_rank = 0; worker_rank < worker_clients_num_; ++worker_rank) {
     auto dp_rank = worker_rank / dp_local_tp_size_;
+    LOG(INFO) << "$$$$$$$$$ VLMEngine::step calling worker_rank: "
+              << worker_rank << ", dp_rank: " << dp_rank;
     futures.emplace_back(
         worker_clients_[worker_rank]->step_async(raw_forward_inputs[dp_rank]));
   }
@@ -353,6 +355,7 @@ ForwardOutput VLMEngine::step(std::vector<Batch>& batch) {
         // if it's not enabled, process_sample_output will append the real
         // token, if it's enabled, this false here will append the fake token in
         // process_sample_output
+        LOG(INFO) << "$$$$$$$$$$ process_sample_output";
         batch[dp_rank].process_sample_output(result.value(), false);
 
       } else {
