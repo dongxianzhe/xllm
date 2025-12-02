@@ -315,6 +315,15 @@ INLINE void write_swap_blocks(char*& buffer,
   }
 }
 
+INLINE void write_vector_tensor(char*& buffer,
+                                const std::vector<torch::Tensor>& tensor_vec) {
+  int32_t tensor_num = tensor_vec.size();
+  write_data(buffer, tensor_num);
+  for (const auto& tensor : tensor_vec) {
+    write_tensor(buffer, tensor);
+  }
+}
+
 INLINE void write_mm_data(char*& buffer, const MMData& mm_data) {
   auto& mm_dict = mm_data.data();
   // size
@@ -491,6 +500,16 @@ INLINE void read_swap_blocks(const char*& buffer,
   for (int i = 0; i < size; i++) {
     blocks.emplace_back(*reinterpret_cast<const int32_t*>(buffer),
                         *reinterpret_cast<const int32_t*>(buffer + 4));
+  }
+}
+
+INLINE void read_vector_tensor(const char*& buffer,
+                               std::vector<torch::Tensor>& tensor_vec) {
+  int32_t tensor_num;
+  read_data(buffer, tensor_num);
+  tensor_vec.resize(tensor_num);
+  for (size_t i = 0; i < tensor_num; ++i) {
+    read_tensor(buffer, tensor_vec[i]);
   }
 }
 
@@ -732,6 +751,8 @@ void deserialize_raw_forward_output(const char* buffer,
   read_vector(buffer, output.expert_load_data);
 
   read_data(buffer, output.prepared_layer_id);
+
+  read_vector_tensor(buffer, output.mm_embeddings);
 }
 
 void serialize_raw_forward_output(const RawForwardOutput& output,
@@ -744,6 +765,8 @@ void serialize_raw_forward_output(const RawForwardOutput& output,
   write_vector(buffer, output.expert_load_data);
 
   write_data(buffer, output.prepared_layer_id);
+
+  write_vector_tensor(buffer, output.mm_embeddings);
 }
 
 ForwardSharedMemoryManager::ForwardSharedMemoryManager(const std::string& name,
