@@ -961,6 +961,7 @@ void convert_tensor_to_raw_output(
   }
 
   raw_output.outputs.reserve(num_seqs);
+  raw_output.mm_embeddings = mm_embeddings;
   for (int32_t output_idx = 0; output_idx < num_seqs; ++output_idx) {
     RawSampleOutput raw_sample_output;
 
