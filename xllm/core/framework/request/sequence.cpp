@@ -334,13 +334,7 @@ SequenceOutput Sequence::generate_output(const Tokenizer& tokenizer) {
       output_mm_embeddings_.size() > 0) {
     SequenceOutput output;
     output.index = index_;
-    Slice<float> embedding_slice = {output_mm_embeddings_[0].data_ptr<float>(),
-                                    output_mm_embeddings_[0].size(0)};
-    for (auto& emb : output_mm_embeddings_) {
-      LOG(INFO) << "$$$$$$$$$$ mm_embedding size: " << emb.sizes();
-      LOG(INFO) << "$$$$$$$$$$ mm_embedding first ten value: "
-                << emb.view(-1).slice(0, 0, 10);
-    }
+    output.mm_embeddings = output_mm_embeddings_;
     return output;
   }
   if (sequence_params_.sampling_param->is_embeddings) {
