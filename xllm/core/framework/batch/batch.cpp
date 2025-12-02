@@ -215,6 +215,7 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
                                   bool replace_fake_token) {
   // if raw_output.outputs.size() value is 0,
   // this means all sequences are in prefill stage status.
+  LOG(INFO) << "batch sample raw forward output is called";
   const int64_t num_seqs = raw_output.outputs.size();
   int64_t output_idx = 0;
   for (auto* seq : sequences_) {
