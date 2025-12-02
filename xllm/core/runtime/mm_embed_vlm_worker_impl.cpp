@@ -94,7 +94,8 @@ std::optional<ForwardOutput> MMEmbedVLMWorkerImpl::step(
   sample_output.embeddings = embeddings;
   sample_output.mm_embeddings = mm_embeddings;
   output.sample_output = sample_output;
-  // output.embedding = embeddings;
+  output.embedding = embeddings;
+  output.mm_embeddings = mm_embeddings;
 
   return output;
 }

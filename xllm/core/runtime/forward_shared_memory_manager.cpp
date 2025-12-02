@@ -911,17 +911,19 @@ void ForwardSharedMemoryManager::raw_input_read(
   return;
 }
 
-void convert_tensor_to_raw_output(const torch::Tensor& next_tokens,
-                                  const torch::Tensor& logprobs,
-                                  const torch::Tensor& top_tokens,
-                                  const torch::Tensor& top_logprobs,
-                                  const torch::Tensor& embeddings,
-                                  const torch::Tensor& expert_load_data,
-                                  int32_t prepared_layer_id,
-                                  const torch::Tensor& src_seq_idxes,
-                                  const torch::Tensor& out_tokens,
-                                  const torch::Tensor& out_logprobs,
-                                  RawForwardOutput& raw_output) {
+void convert_tensor_to_raw_output(
+    const torch::Tensor& next_tokens,
+    const torch::Tensor& logprobs,
+    const torch::Tensor& top_tokens,
+    const torch::Tensor& top_logprobs,
+    const torch::Tensor& embeddings,
+    const std::vector<torch::Tensor>& mm_embeddings,
+    const torch::Tensor& expert_load_data,
+    int32_t prepared_layer_id,
+    const torch::Tensor& src_seq_idxes,
+    const torch::Tensor& out_tokens,
+    const torch::Tensor& out_logprobs,
+    RawForwardOutput& raw_output) {
   raw_output.prepared_layer_id = prepared_layer_id;
 
   if (FLAGS_enable_eplb) {
@@ -1040,6 +1042,7 @@ bool ForwardSharedMemoryManager::raw_output_write(
     const torch::Tensor& top_tokens,
     const torch::Tensor& top_logprobs,
     const torch::Tensor& embeddings,
+    const std::vector<torch::Tensor>& mm_embeddings,
     const torch::Tensor& expert_load_data,
     int32_t prepared_layer_id,
     const torch::Tensor& src_seq_idxes,
@@ -1051,6 +1054,7 @@ bool ForwardSharedMemoryManager::raw_output_write(
                                top_tokens,
                                top_logprobs,
                                embeddings,
+                               mm_embeddings,
                                expert_load_data,
                                prepared_layer_id,
                                src_seq_idxes,

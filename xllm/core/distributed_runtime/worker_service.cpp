@@ -72,6 +72,7 @@ void WorkerService::step(ForwardInput& fwd_input,
                          torch::Tensor& top_tokens,
                          torch::Tensor& top_logprobs,
                          torch::Tensor& embeddings,
+                         std::vector<torch::Tensor>& mm_embeddings,
                          torch::Tensor& expert_load_data,
                          int32_t& prepared_layer_id,
                          torch::Tensor& src_seq_idxes,
@@ -100,6 +101,15 @@ void WorkerService::step(ForwardInput& fwd_input,
         embeddings = safe_to(sample_output.embeddings,
                              torch::dtype(torch::kFloat32).device(torch::kCPU),
                              true);
+
+        mm_embeddings.clear();
+        mm_embeddings.reserve(sample_output.mm_embeddings.size());
+        for (auto mm_embedding : sample_output.mm_embeddings) {
+          mm_embeddings.emplace_back(
+              safe_to(mm_embedding,
+                      torch::dtype(torch::kFloat32).device(torch::kCPU),
+                      true));
+        }
 
         // [num_seq]
         next_tokens = safe_to(sample_output.next_tokens, torch::kCPU, true);
@@ -168,6 +178,7 @@ void WorkerService::create_polling_shm_thread(
           torch::Tensor top_tokens;
           torch::Tensor top_logprobs;
           torch::Tensor embeddings;
+          std::vector<torch::Tensor> mm_embeddings;
           torch::Tensor expert_load_data;
           int32_t prepared_layer_id = -1;
 
@@ -185,17 +196,27 @@ void WorkerService::create_polling_shm_thread(
                top_tokens,
                top_logprobs,
                embeddings,
+               mm_embeddings,
                expert_load_data,
                prepared_layer_id,
                src_seq_idxes,
                out_tokens,
                out_logprobs);
 
+          for (auto& emb : mm_embeddings) {
+            LOG(INFO) << "$$$$$$$$$$ worker_service mm_embedding size: "
+                      << emb.sizes();
+            LOG(INFO)
+                << "$$$$$$$$$$ worker_service mm_embedding first ten value: "
+                << emb.view(-1).slice(0, 0, 10);
+          }
+
           output_shm_manager->raw_output_write(next_tokens,
                                                logprobs,
                                                top_tokens,
                                                top_logprobs,
                                                embeddings,
+                                               mm_embeddings,
                                                expert_load_data,
                                                prepared_layer_id,
                                                src_seq_idxes,
@@ -591,6 +612,7 @@ void WorkerService::ExecuteModel(::google::protobuf::RpcController* controller,
         torch::Tensor top_tokens;
         torch::Tensor top_logprobs;
         torch::Tensor embeddings;
+        std::vector<torch::Tensor> mm_embeddings;
         torch::Tensor expert_load_data;
         int32_t prepared_layer_id = -1;
         // beam search kernel output
@@ -604,6 +626,7 @@ void WorkerService::ExecuteModel(::google::protobuf::RpcController* controller,
              top_tokens,
              top_logprobs,
              embeddings,
+             mm_embeddings,
              expert_load_data,
              prepared_layer_id,
              src_seq_idxes,
