@@ -216,6 +216,8 @@ struct RawForwardOutput {
   std::vector<int32_t> src_seq_idxes;
   std::vector<int32_t> out_tokens;
   std::vector<float> out_logprobs;
+  // multimodal embedding
+  std::vector<torch::Tensor> mm_embeddings;
 };
 
 struct BatchedForwardInputs {
