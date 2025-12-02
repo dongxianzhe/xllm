@@ -87,6 +87,9 @@ std::optional<ForwardOutput> MMEmbedVLMWorkerImpl::step(
     LOG(INFO) << "$$$$$$$$$$ mm_embedding size: " << emb.sizes();
     LOG(INFO) << "$$$$$$$$$$ mm_embedding first ten value: "
               << emb.view(-1).slice(0, 0, 10);
+
+    LOG(INFO) << "$$$$$$$$$$ mm_embedding last ten value: "
+              << emb.view(-1).slice(0, emb.numel() - 10, emb.numel());
   }
 
   auto embeddings =
