@@ -211,6 +211,45 @@ RawForwardInput Batch::prepare_forward_input(const ModelArgs& args,
   return builder.build_raw_forward_input();
 }
 
+static void print_mmdict(const MMDict& mmdict) {
+  for (const auto& kv : mmdict) {
+    const auto& key = kv.first;
+    const auto& value = kv.second;
+
+    LOG(INFO) << "$$$$$$$$$$ " << "Key: " << key;
+
+    std::visit(
+        [&](auto&& arg) {
+          using T = std::decay_t<decltype(arg)>;
+
+          // Case 1: single Tensor
+          if constexpr (std::is_same_v<T, torch::Tensor>) {
+            LOG(INFO) << "$$$$$$$$$$ " << "  Type: Tensor";
+            LOG(INFO) << "$$$$$$$$$$ " << "  Shape: " << arg.sizes();
+            LOG(INFO) << "$$$$$$$$$$ " << "  Dtype: " << arg.dtype();
+            LOG(INFO) << "$$$$$$$$$$ " << "  Device: " << arg.device();
+
+            // Case 2: vector<Tensor>
+          } else if constexpr (std::is_same_v<T, std::vector<torch::Tensor>>) {
+            LOG(INFO) << "$$$$$$$$$$ " << "  Type: vector<Tensor>";
+            for (size_t i = 0; i < arg.size(); ++i) {
+              const auto& t = arg[i];
+              LOG(INFO) << "$$$$$$$$$$ " << "    Tensor[" << i
+                        << "] shape: " << t.sizes();
+              LOG(INFO) << "$$$$$$$$$$ " << "    Dtype: " << t.dtype();
+              LOG(INFO) << "$$$$$$$$$$ " << "    Device: " << t.device();
+            }
+          } else if constexpr (std::is_same_v<T, int64_t>) {
+            LOG(INFO) << "$$$$$$$$$$ " << "  Type: int64_t";
+            LOG(INFO) << "$$$$$$$$$$ " << "    value: " << arg;
+          }
+        },
+        value);
+
+    LOG(INFO) << "$$$$$$$$$$ ------------------------\n";
+  }
+}
+
 void Batch::process_sample_output(const RawForwardOutput& raw_output,
                                   bool replace_fake_token) {
   // if raw_output.outputs.size() value is 0,
@@ -219,6 +258,7 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
   LOG(INFO) << "$$$$$$$$$$ raw_output.mm_embeddings.size(): "
             << raw_output.mm_embeddings.size();
 
+  int64_t mm_embedding_idx = 0;
   const int64_t num_seqs = raw_output.outputs.size();
   int64_t output_idx = 0;
   for (auto* seq : sequences_) {
@@ -231,11 +271,20 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
     }
     CHECK_LT(output_idx, num_seqs);
 
-    if (true) {  // TODO check seq mm embeddings number > 0
-      seq->update_mm_embeddings(
-          raw_output.mm_embeddings);  // TODO dispatch mm embeddings to seqs
-      CHECK(seq->finished());  // TODO we only support finish mm embedding in
-                               // one iteration
+    const auto& n_images_opt = seq->get_mm_data().get<int64_t>("n_images");
+    int64_t n_images = 0;
+    if (n_images_opt) n_images = n_images_opt.value();
+    if (n_images > 0) {
+      std::vector<torch::Tensor> seq_mm_embeddings;
+      seq_mm_embeddings.reserve(n_images);
+      for (int i = mm_embedding_idx; i < mm_embedding_idx + n_images; i++) {
+        CHECK_LT(i, raw_output.mm_embeddings.size());
+        seq_mm_embeddings.push_back(raw_output.mm_embeddings[i]);
+      }
+      seq->update_mm_embeddings(seq_mm_embeddings);
+      CHECK(seq->finished());  // we only support complete mm embedding in one
+                               // iteration now
+      mm_embedding_idx += n_images;
       output_idx++;
       continue;
     }
