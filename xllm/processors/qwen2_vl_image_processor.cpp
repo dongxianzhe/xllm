@@ -120,8 +120,11 @@ bool Qwen2VLImageProcessor::process_images(std::vector<torch::Tensor> images,
   auto thw = torch::tensor(grids);
 
   thw = thw.clone().reshape({-1, 3});
-  mm_datas = std::move(MMData(
-      MMType::IMAGE, {{"image_grid_thw", thw}, {"pixel_values", values}}));
+  mm_datas = std::move(
+      MMData(MMType::IMAGE,
+             {{"image_grid_thw", thw},
+              {"pixel_values", values},
+              {"n_images", static_cast<int64_t>(pixel_values.size())}}));
 
   return true;
 }
