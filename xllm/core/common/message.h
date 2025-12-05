@@ -15,6 +15,8 @@ limitations under the License.
 
 #pragma once
 
+#include <torch/torch.h>
+
 #include <optional>
 #include <string>
 #include <variant>
@@ -43,6 +45,8 @@ struct MMContent {
       : type(type), video_url(std::move(video_url)) {}
   MMContent(const std::string& type, const AudioURL& audio_url)
       : type(type), audio_url(std::move(audio_url)) {}
+  MMContent(const std::string& type, const torch::Tensor& mm_embedding)
+      : type(type), mm_embedding(std::move(mm_embedding)) {}
 
   std::string type;
 
@@ -51,6 +55,7 @@ struct MMContent {
 
   VideoURL video_url;
   AudioURL audio_url;
+  torch::Tensor mm_embedding;
 };
 using MMContentVec = std::vector<MMContent>;
 
