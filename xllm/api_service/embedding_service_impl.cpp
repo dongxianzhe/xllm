@@ -31,27 +31,29 @@ namespace {
 
 static bool build_mm_embeddings(
     const std::vector<torch::Tensor>& mm_embeddings,
-    google::protobuf::RepeatedPtrField<xllm::proto::MMEmbeddingData>&
+    google::protobuf::RepeatedPtrField<xllm::proto::Tensor>&
         out_mm_embeddings) {
+  LOG(INFO) << "$$$$$$$$$$ build mm embeddings in service.";
   for (const auto& mm_embedding : mm_embeddings) {
     CHECK(mm_embedding.is_contiguous())
         << "Internal Error not support contiguous mm_embedding values";
 
-    xllm::proto::MMEmbeddingData* out_mm_embedding = out_mm_embeddings.Add();
+    xllm::proto::Tensor* out_mm_embedding = out_mm_embeddings.Add();
 
     for (auto dim : mm_embedding.sizes()) {
       out_mm_embedding->add_shape(static_cast<int32_t>(dim));
     }
 
-    auto* float_data =
-        new xllm::proto::FloatTensorData();  // protobuf take ownership of the
-                                             // memory
+    auto* tensor_contents =
+        new xllm::proto::TensorContents();  // protobuf take ownership of the
+                                            // memory
     float* data_ptr = mm_embedding.data_ptr<float>();
-    float_data->mutable_values()->Add(data_ptr,
-                                      data_ptr + mm_embedding.numel());
+    tensor_contents->mutable_fp32_contents()->Add(
+        data_ptr, data_ptr + mm_embedding.numel());
 
-    out_mm_embedding->set_allocated_float_data(
-        float_data);  // protobuf take ownership of the float_data memory
+    out_mm_embedding->set_allocated_contents(
+        tensor_contents);  // protobuf take ownership of the tensor_contents
+                           // memory
   }
   return true;
 }
