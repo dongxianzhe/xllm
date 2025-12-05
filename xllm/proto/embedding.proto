@@ -5,6 +5,7 @@ package xllm.proto;
 
 import "common.proto";
 import "multimodal.proto";
+import "tensor.proto";
 
 message EmbeddingRequest {
   // ID of the model to use. You can use the ListModels endpoint to list available models.
@@ -44,18 +45,6 @@ message EmbeddingRequest {
   optional bool add_special_tokens = 10;
 }
 
-message FloatTensorData{
-  repeated float values = 1; 
-}
-
-message MMEmbeddingData{
-  repeated int32 shape = 1;
-  oneof embedding{
-    FloatTensorData float_data = 2;
-    string base64_data = 3;
-  }
-}
-
 message EmbeddingResponseData {
   // The index of the embedding in the input array.
   int32 index = 1;
@@ -66,7 +55,7 @@ message EmbeddingResponseData {
 
   // The embedding vector.
   repeated float embedding = 3;
-  repeated MMEmbeddingData mm_embeddings = 4;
+  repeated Tensor mm_embeddings = 4;
   //oneof embedding {
   //  // float, The embedding vector as an array of floats.
   //  repeated float float_values = 3;

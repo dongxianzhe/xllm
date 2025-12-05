@@ -91,6 +91,7 @@ MMData MMData::to(const MMData& mm_data, const torch::Device& device) {
 MMData MMData::batch(const std::vector<MMData>& mm_datas) {
   uint32_t ty = 0;
   std::unordered_map<MMKey, std::vector<torch::Tensor>> lists;
+  int64_t sum_n_images = 0;
 
   for (const auto& item : mm_datas) {
     ty |= item.type();
@@ -102,6 +103,8 @@ MMData MMData::batch(const std::vector<MMData>& mm_datas) {
         auto& tar = lists[pair.first];
         const auto& lst = std::get<std::vector<torch::Tensor>>(pair.second);
         tar.insert(tar.end(), lst.begin(), lst.end());
+      } else if (std::holds_alternative<int64_t>(pair.second)) {
+        sum_n_images += std::get<int64_t>(pair.second);
       } else {
         assert(0);
       }
@@ -131,6 +134,11 @@ MMData MMData::batch(const std::vector<MMData>& mm_datas) {
       dict[pair.first] = std::move(pair.second);
     }
   }
+  // # TODO
+  // MMValue v(std::in_place_type<int64_t>, sum_n_images);
+  // dict["n_images"] = v;
+  // dict["n_images"] = sum_n_images;
+  LOG(INFO) << "$$$$$$$$$$ sum_n_images=" << sum_n_images;
 
   return std::move(MMData(ty, dict));
 }
