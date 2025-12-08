@@ -259,7 +259,12 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
             << raw_output.mm_embeddings.size();
 
   int64_t mm_embedding_idx = 0;
-  const int64_t num_seqs = raw_output.outputs.size();
+  int64_t num_seqs;
+  if (raw_output.mm_embeddings.size() == 0) {
+    num_seqs = raw_output.outputs.size();
+  } else {
+    num_seqs = sequences_.size();
+  }
   int64_t output_idx = 0;
   for (auto* seq : sequences_) {
     if (seq->finished()) {
@@ -269,8 +274,9 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
     if (update_sequence_state(seq, replace_fake_token)) {
       continue;
     }
+    LOG(INFO) << "$$$$$$$$$$ output_idx, num_seqs, sequences_.size(): "
+              << output_idx << ", " << num_seqs << ", " << sequences_.size();
     CHECK_LT(output_idx, num_seqs);
-
     if (raw_output.mm_embeddings.size() > 0) {  // mm embed task
       const auto& n_images_opt = seq->get_mm_data().get<int64_t>("n_images");
       int64_t n_images = 0;

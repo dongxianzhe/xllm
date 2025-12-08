@@ -75,7 +75,7 @@ struct SequenceOutput {
   // the embeddings of the prompt token
   std::optional<std::vector<float>> embeddings;
 
-  // the embedding of multimodal input
+  // the embedding of multimodal output
   std::optional<std::vector<torch::Tensor>> mm_embeddings;
 };
 
