@@ -82,16 +82,6 @@ std::optional<ForwardOutput> MMEmbedVLMWorkerImpl::step(
   // driver prepare model output
   ForwardOutput output;
   SampleOutput sample_output;
-
-  for (auto& emb : mm_embeddings) {
-    LOG(INFO) << "$$$$$$$$$$ mm_embedding size: " << emb.sizes();
-    LOG(INFO) << "$$$$$$$$$$ mm_embedding first ten value: "
-              << emb.view(-1).slice(0, 0, 10);
-
-    LOG(INFO) << "$$$$$$$$$$ mm_embedding last ten value: "
-              << emb.view(-1).slice(0, emb.numel() - 10, emb.numel());
-  }
-
   sample_output.mm_embeddings = mm_embeddings;
   output.sample_output = sample_output;
   output.mm_embeddings = mm_embeddings;

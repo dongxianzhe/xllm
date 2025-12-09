@@ -21,8 +21,6 @@ namespace xllm {
 
 bool MMEmbeddingHandler::load(const MMContent& content, MMInputItem& input) {
   if (!content.mm_embedding.defined()) return false;
-  LOG(INFO) << "$$$$$$$$$$ load mm embedding with sizes"
-            << content.mm_embedding.sizes();
   input.type_ = MMType::EMBEDDING;
   input.mm_embedding = content.mm_embedding;
   input.decode_data_ = content.mm_embedding;

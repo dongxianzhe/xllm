@@ -85,7 +85,6 @@ void WorkerService::step(ForwardInput& fwd_input,
     auto forward_outputs = std::move(future).get();
     // convert ForwardOutput to proto::ForwardOutput which contain Tokens.
     if (forward_outputs) {
-      LOG(INFO) << "$$$$$$$$$$ WorkerService::step got model output";
       DCHECK(forward_outputs.has_value()) << "Failed to execute model";
       const auto& sample_output = forward_outputs.value().sample_output;
       const auto& beam_search_output =
@@ -189,7 +188,6 @@ void WorkerService::create_polling_shm_thread(
 
           fwd_input = std::move(inputs[0]);
 
-          LOG(INFO) << "$$$$$$$$$$ worker service step is called";
           step(fwd_input,
                next_tokens,
                logprobs,
@@ -202,14 +200,6 @@ void WorkerService::create_polling_shm_thread(
                src_seq_idxes,
                out_tokens,
                out_logprobs);
-
-          for (auto& emb : mm_embeddings) {
-            LOG(INFO) << "$$$$$$$$$$ worker_service mm_embedding size: "
-                      << emb.sizes();
-            LOG(INFO)
-                << "$$$$$$$$$$ worker_service mm_embedding first ten value: "
-                << emb.view(-1).slice(0, 0, 10);
-          }
 
           output_shm_manager->raw_output_write(next_tokens,
                                                logprobs,

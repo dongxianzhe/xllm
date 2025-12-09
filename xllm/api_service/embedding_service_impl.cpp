@@ -33,7 +33,6 @@ static bool build_mm_embeddings(
     const std::vector<torch::Tensor>& mm_embeddings,
     google::protobuf::RepeatedPtrField<xllm::proto::Tensor>&
         out_mm_embeddings) {
-  LOG(INFO) << "$$$$$$$$$$ build mm embeddings in service.";
   for (const auto& mm_embedding : mm_embeddings) {
     CHECK(mm_embedding.is_contiguous())
         << "Internal Error not support contiguous mm_embedding values";

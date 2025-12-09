@@ -219,7 +219,6 @@ void Sequence::update_mm_embeddings(
   if (finished_) {
     return;
   }
-  LOG(INFO) << "$$$$$$$$$$ mm_embeddings.size(): " << mm_embeddings.size();
   output_mm_embeddings_ = mm_embeddings;
   CHECK(sequence_params_.sampling_param->is_embeddings);
   // invalidate the finish status once a new token is appended
@@ -326,10 +325,6 @@ SequenceOutput Sequence::generate_output(const Tokenizer& tokenizer) {
   AUTO_COUNTER(detokenization_latency_seconds_non_stream);
 
   // build embeddings for output
-  LOG(INFO) << "$$$$$$$$$$ sequence_params_.sampling_param->is_embeddings"
-            << sequence_params_.sampling_param->is_embeddings;
-  LOG(INFO) << "$$$$$$$$$$ output_mm_embeddings_.size()"
-            << output_mm_embeddings_.size();
   if (sequence_params_.sampling_param->is_embeddings &&
       output_mm_embeddings_.size() > 0) {
     SequenceOutput output;

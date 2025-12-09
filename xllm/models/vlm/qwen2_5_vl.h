@@ -74,7 +74,6 @@ class Qwen2_5_VLInputProcessor : public InputProcessor {
         int n_image_tokens =
             image_grid_thw[idx].prod().item<int>() / merge_length;
         total_image_token += n_image_tokens;
-        LOG(INFO) << "$$$$$$$$$$ n_image_tokens: " << n_image_tokens;
       }
     }
 
@@ -733,7 +732,6 @@ class Qwen2_5_VLForConditionalGenerationImpl : public torch::nn::Module {
       auto image_embeds = visual_(image_input->pixel_values.to(options_),
                                   image_input->image_grid_thw,
                                   input_params);
-      LOG(INFO) << "$$$$$$$$$$ image_embeds size: " << image_embeds.sizes();
       // merge
       auto is_multimodal = torch::isin(input_ids, model_args_.image_token_id());
       inputs_embeds.index_put_({is_multimodal}, image_embeds);

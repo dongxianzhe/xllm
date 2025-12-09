@@ -211,53 +211,10 @@ RawForwardInput Batch::prepare_forward_input(const ModelArgs& args,
   return builder.build_raw_forward_input();
 }
 
-static void print_mmdict(const MMDict& mmdict) {
-  for (const auto& kv : mmdict) {
-    const auto& key = kv.first;
-    const auto& value = kv.second;
-
-    LOG(INFO) << "$$$$$$$$$$ " << "Key: " << key;
-
-    std::visit(
-        [&](auto&& arg) {
-          using T = std::decay_t<decltype(arg)>;
-
-          // Case 1: single Tensor
-          if constexpr (std::is_same_v<T, torch::Tensor>) {
-            LOG(INFO) << "$$$$$$$$$$ " << "  Type: Tensor";
-            LOG(INFO) << "$$$$$$$$$$ " << "  Shape: " << arg.sizes();
-            LOG(INFO) << "$$$$$$$$$$ " << "  Dtype: " << arg.dtype();
-            LOG(INFO) << "$$$$$$$$$$ " << "  Device: " << arg.device();
-
-            // Case 2: vector<Tensor>
-          } else if constexpr (std::is_same_v<T, std::vector<torch::Tensor>>) {
-            LOG(INFO) << "$$$$$$$$$$ " << "  Type: vector<Tensor>";
-            for (size_t i = 0; i < arg.size(); ++i) {
-              const auto& t = arg[i];
-              LOG(INFO) << "$$$$$$$$$$ " << "    Tensor[" << i
-                        << "] shape: " << t.sizes();
-              LOG(INFO) << "$$$$$$$$$$ " << "    Dtype: " << t.dtype();
-              LOG(INFO) << "$$$$$$$$$$ " << "    Device: " << t.device();
-            }
-          } else if constexpr (std::is_same_v<T, int64_t>) {
-            LOG(INFO) << "$$$$$$$$$$ " << "  Type: int64_t";
-            LOG(INFO) << "$$$$$$$$$$ " << "    value: " << arg;
-          }
-        },
-        value);
-
-    LOG(INFO) << "$$$$$$$$$$ ------------------------\n";
-  }
-}
-
 void Batch::process_sample_output(const RawForwardOutput& raw_output,
                                   bool replace_fake_token) {
   // if raw_output.outputs.size() value is 0,
   // this means all sequences are in prefill stage status.
-  LOG(INFO) << "$$$$$$$$$$ batch sample raw forward output is called";
-  LOG(INFO) << "$$$$$$$$$$ raw_output.mm_embeddings.size(): "
-            << raw_output.mm_embeddings.size();
-
   int64_t mm_embedding_idx = 0;
   int64_t num_seqs;
   if (raw_output.mm_embeddings.size() == 0) {
@@ -274,8 +231,6 @@ void Batch::process_sample_output(const RawForwardOutput& raw_output,
     if (update_sequence_state(seq, replace_fake_token)) {
       continue;
     }
-    LOG(INFO) << "$$$$$$$$$$ output_idx, num_seqs, sequences_.size(): "
-              << output_idx << ", " << num_seqs << ", " << sequences_.size();
     CHECK_LT(output_idx, num_seqs);
     if (raw_output.mm_embeddings.size() > 0) {  // mm embed task
       const auto& n_images_opt = seq->get_mm_data().get<int64_t>("n_images");

@@ -123,7 +123,6 @@ void SequencesGroup::generate_outputs(std::vector<SequenceOutput>& outputs,
       return;
     }
     for (auto& seq : sequences_) {
-      LOG(INFO) << "$$$$$$$$$$ sequence generate is called here";
       outputs.push_back(seq->generate_output(tokenizer));
     }
   }

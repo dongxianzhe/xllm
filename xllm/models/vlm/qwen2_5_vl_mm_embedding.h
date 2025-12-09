@@ -60,8 +60,6 @@ class Qwen2_5_VLForMMEmbeddingImpl : public torch::nn::Module {
     for (int idx = 0; idx < count; ++idx) {
       int n_image_tokens =
           image_grid_thw[idx].prod().item<int>() / merge_length;
-      LOG(INFO) << "$$$$$$$$$$ get_images_size n_image_tokens: "
-                << n_image_tokens;
       images_size.emplace_back(n_image_tokens);
     }
     return images_size;

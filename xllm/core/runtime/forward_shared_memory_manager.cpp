@@ -740,7 +740,6 @@ void read_raw_sample_output(const char*& buffer, RawSampleOutput& sample) {
 
 void deserialize_raw_forward_output(const char* buffer,
                                     RawForwardOutput& output) {
-  LOG(INFO) << "$$$$$$$$$$ deserialize_raw_forward_output is called";
   uint64_t outputs_count;
   read_data(buffer, outputs_count);
   output.outputs.resize(outputs_count);

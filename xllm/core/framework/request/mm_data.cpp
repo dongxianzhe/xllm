@@ -138,7 +138,6 @@ MMData MMData::batch(const std::vector<MMData>& mm_datas) {
   // MMValue v(std::in_place_type<int64_t>, sum_n_images);
   // dict["n_images"] = v;
   // dict["n_images"] = sum_n_images;
-  LOG(INFO) << "$$$$$$$$$$ sum_n_images=" << sum_n_images;
 
   return std::move(MMData(ty, dict));
 }
