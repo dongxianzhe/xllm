@@ -43,6 +43,7 @@ limitations under the License.
 #include "vlm/qwen2_5_vl.h"               // IWYU pragma: keep
 #include "vlm/qwen2_5_vl_mm_embedding.h"  // IWYU pragma: keep
 #include "vlm/qwen3_vl.h"                 // IWYU pragma: keep
+#include "vlm/qwen3_vl_mm_embedding.h"    // IWYU pragma: keep
 #include "vlm/qwen3_vl_moe.h"             // IWYU pragma: keep
 #elif defined(USE_MLU)
 #include "llm/mlu/deepseek_mtp.h"  // IWYU pragma: keep
