@@ -43,9 +43,6 @@ class Qwen2_5_VLForMMEmbeddingImpl : public torch::nn::Module {
       : model_args_(context.get_model_args()),
         options_(context.get_tensor_options()) {
     visual_ = register_module("visual", Qwen2_5_VisionTransformer(context));
-
-    language_model_ = register_module("language_model",
-                                      QWen2ForCausalLM(context));  // not load
   }
 
   std::vector<int> get_images_size(torch::Tensor image_grid_thw) {
@@ -119,7 +116,6 @@ class Qwen2_5_VLForMMEmbeddingImpl : public torch::nn::Module {
   torch::TensorOptions options_;
 
   Qwen2_5_VisionTransformer visual_{nullptr};
-  QWen2ForCausalLM language_model_{nullptr};
 };
 TORCH_MODULE(Qwen2_5_VLForMMEmbedding);
 
