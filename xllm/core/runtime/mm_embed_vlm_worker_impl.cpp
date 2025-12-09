@@ -92,12 +92,8 @@ std::optional<ForwardOutput> MMEmbedVLMWorkerImpl::step(
               << emb.view(-1).slice(0, emb.numel() - 10, emb.numel());
   }
 
-  auto embeddings =
-      torch::arange(16, torch::dtype(torch::kFloat)).reshape({1, 16});
-  sample_output.embeddings = embeddings;
   sample_output.mm_embeddings = mm_embeddings;
   output.sample_output = sample_output;
-  output.embedding = embeddings;
   output.mm_embeddings = mm_embeddings;
 
   return output;
