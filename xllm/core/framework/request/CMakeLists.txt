@@ -12,6 +12,7 @@ cc_library(
     mm_codec.h
     mm_data.h
     mm_handler.h
+    mm_embedding_handler.h
     mm_input.h
     request_base.h
     request.h
@@ -34,6 +35,7 @@ cc_library(
     mm_codec.cpp
     mm_data.cpp
     mm_handler.cpp
+    mm_embedding_handler.cpp
     mm_input.cpp
     request.cpp
     dit_request.cpp

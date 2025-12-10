@@ -37,6 +37,7 @@ struct MMInputItem {
   torch::Tensor decode_data_;  // image: rgb, [c,h,w], uint8
 
   VideoMetadata video_meta_;
+  torch::Tensor mm_embedding_;
 };
 
 struct MMInput {
