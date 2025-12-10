@@ -91,5 +91,9 @@ bool proto_to_mmdata(const proto::MMData& pb_mmdata,
 
 int32_t ceil_pow2(int32_t n);
 
+torch::ScalarType datatype_proto_to_torch(const std::string& proto_datatype);
+
+std::string torch_datatype_to_proto(torch::ScalarType torch_dtype);
+
 }  // namespace util
 }  // namespace xllm
