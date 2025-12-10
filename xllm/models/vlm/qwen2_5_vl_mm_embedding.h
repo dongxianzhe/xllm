@@ -16,24 +16,7 @@ limitations under the License.
 
 #pragma once
 
-#include <atb/atb_infer.h>
-#include <c10/core/ScalarType.h>
-#include <torch/torch.h>
-
-#include <unordered_map>
-
-#include "core/framework/kv_cache/kv_cache.h"
-#include "core/framework/model/model_input_params.h"
-#include "core/layers/lm_head.h"
-#include "core/layers/qwen2_decoder_layer.h"
-#include "core/layers/qwen2dot5_vision_decode_layer.h"
-#include "core/layers/rms_norm.h"
-#include "models/llm/qwen2.h"
-#include "models/model_registry.h"
-#include "processors/input_processor.h"
-#include "processors/qwen2_vl_image_processor.h"
 #include "qwen2_5_vl.h"
-#include "xllm_kernels/core/include/atb_speed/log.h"
 
 namespace xllm {
 
