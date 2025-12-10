@@ -116,6 +116,27 @@ class MMEmbeddingVLMImpl<xllm::Qwen2_5_VLForMMEmbedding>
     return model_->encode(input_params);
   };
 
+  virtual torch::Tensor logits(const torch::Tensor& hidden_states,
+                               const torch::Tensor& selected_idxes) {
+    return torch::Tensor();
+  }
+
+  virtual torch::Tensor forward(const torch::Tensor& tokens,
+                                const torch::Tensor& positions,
+                                std::vector<KVCache>& kv_caches,
+                                const ModelInputParams& input_params) {
+    return torch::Tensor{};
+  }
+  virtual void prepare_expert_weight(int32_t layer_id,
+                                     const std::vector<int32_t>& expert_ids) {
+    return;
+  }
+  virtual void update_expert_weight(int32_t layer_id) { return; }
+  virtual void set_lm_head(layer::LmHead& head) { return; }
+  virtual layer::LmHead get_lm_head() { return nullptr; }
+  virtual layer::WordEmbedding get_word_embedding() { return nullptr; }
+  virtual void set_word_embedding(layer::WordEmbedding& embedding) { return; }
+
   void load_model(std::unique_ptr<ModelLoader> loader) override {
     model_->load_model(std::move(loader));
   }
