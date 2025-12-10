@@ -52,6 +52,10 @@ bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
           output.embeddings->data(),
           output.embeddings->data() + output.embeddings->size());
     }
+    if (output.mm_embeddings.has_value()) {
+      build_mm_embeddings(*output.mm_embeddings,
+                          *(data->mutable_mm_embeddings()));
+    }
   }
 
   // add usage statistics
