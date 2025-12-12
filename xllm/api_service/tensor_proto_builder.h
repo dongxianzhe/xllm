@@ -15,13 +15,13 @@ limitations under the License.
 
 #include "core/common/message.h"
 #include "core/common/types.h"
+#include "core/util/utils.h"
 #include "tensor.pb.h"
 
 namespace xllm {
 class TensorProtoBuilder {
  private:
   std::string torch_dtype_to_string(at::ScalarType dtype);
-  bool must_use_binary_format(at::ScalarType dtype);
 
  public:
   TensorProtoBuilder(bool use_binary_encoding);

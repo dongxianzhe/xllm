@@ -12,7 +12,8 @@ message TensorContents
   repeated uint64 uint64_contents = 5;
   repeated float fp32_contents = 6;
   repeated double fp64_contents = 7;
-  repeated bytes bytes_contents = 8;
+  repeated bytes string_contents = 8;
+  bytes bytes_contents = 9;
 }
 
 message Tensor {

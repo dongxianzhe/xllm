@@ -104,10 +104,7 @@ void WorkerService::step(ForwardInput& fwd_input,
         mm_embeddings.clear();
         mm_embeddings.reserve(sample_output.mm_embeddings.size());
         for (auto mm_embedding : sample_output.mm_embeddings) {
-          mm_embeddings.emplace_back(
-              safe_to(mm_embedding,
-                      torch::dtype(torch::kFloat32).device(torch::kCPU),
-                      true));
+          mm_embeddings.emplace_back(safe_to(mm_embedding, torch::kCPU, true));
         }
 
         // [num_seq]

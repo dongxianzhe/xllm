@@ -21,53 +21,6 @@ TensorProtoBuilder::TensorProtoBuilder(bool use_binary_encoding)
     : use_binary_encoding_(use_binary_encoding) {};
 TensorProtoBuilder::~TensorProtoBuilder() {};
 
-std::string TensorProtoBuilder::torch_dtype_to_string(at::ScalarType dtype) {
-  switch (dtype) {
-    case at::kFloat:
-      return "fp32";
-    case at::kDouble:
-      return "fp64";
-    case at::kHalf:
-      return "fp16";
-    case at::kBFloat16:
-      return "bf16";
-    case at::kByte:
-      return "uint8";
-    case at::kChar:
-      return "int8";
-    case at::kShort:
-      return "int16";
-    case at::kInt:
-      return "int32";
-    case at::kLong:
-      return "int64";
-    case at::kBool:
-      return "bool";
-    default:
-      return "unknown";
-  }
-}
-
-bool TensorProtoBuilder::must_use_binary_format(at::ScalarType dtype) {
-  switch (dtype) {
-    case at::kFloat:     // fp32
-    case at::kDouble:    // fp64
-    case at::kByte:      // uint8
-    case at::kChar:      // int8
-    case at::kShort:     // int16
-    case at::kInt:       // int32
-    case at::kLong:      // int64
-    case at::kBool:      // bool
-      return false;      // proto support
-    case at::kHalf:      // fp16
-    case at::kBFloat16:  // bf16
-      return true;       // proto is not supported，must use binary format
-    default:
-      // unknown fall back 到 binary format
-      return true;
-  }
-}
-
 bool TensorProtoBuilder::build_repeated_tensor(
     const std::vector<torch::Tensor>& in_tensors,
     google::protobuf::RepeatedPtrField<xllm::proto::Tensor>& out_tensors,
@@ -88,34 +41,27 @@ bool TensorProtoBuilder::build_repeated_tensor(
 bool TensorProtoBuilder::build_tensor(const torch::Tensor& in_tensor,
                                       xllm::proto::Tensor& out_tensor,
                                       std::string& binary_payload) {
-  out_tensor.set_datatype(torch_dtype_to_string(in_tensor.scalar_type()));
-
-  for (auto dim : in_tensor.sizes()) {
-    out_tensor.add_shape(static_cast<int32_t>(dim));
-  }
-
-  float* data_ptr = in_tensor.data_ptr<float>();
-  int64_t numel = in_tensor.numel();
-
-  if (use_binary_encoding_ || must_use_binary_format(in_tensor.scalar_type())) {
+  if (use_binary_encoding_) {
     // build tensor in binary format
-    size_t byte_len = sizeof(float) * numel;
+    out_tensor.set_datatype(
+        util::torch_datatype_to_proto(in_tensor.scalar_type()));
+
+    for (auto dim : in_tensor.sizes()) {
+      out_tensor.add_shape(static_cast<int32_t>(dim));
+    }
+
+    auto numel = in_tensor.numel();
+    auto byte_len = numel * in_tensor.element_size();
     size_t offset = binary_payload.size();
     auto* params = out_tensor.mutable_parameters();
     (*params)["offset"].set_int64_param(offset);
     (*params)["len"].set_int64_param(byte_len);
     (*params)["is_binary"].set_bool_param(true);
-    binary_payload.append(reinterpret_cast<const char*>(data_ptr),
-                          sizeof(float) * numel);
+    binary_payload.append(reinterpret_cast<const char*>(in_tensor.data_ptr()),
+                          byte_len);
   } else {
     // build tensor in json format
-    auto* tensor_contents =
-        new xllm::proto::TensorContents();  // protobuf take ownership of the
-    tensor_contents->mutable_fp32_contents()->Add(data_ptr, data_ptr + numel);
-
-    out_tensor.set_allocated_contents(
-        tensor_contents);  // protobuf take ownership of the tensor_contents
-                           // memory
+    util::torch_to_proto(in_tensor, &out_tensor);
   }
   return true;
 }
