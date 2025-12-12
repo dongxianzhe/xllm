@@ -1,18 +1,3 @@
-/* Copyright 2025 The xLLM Authors. All Rights Reserved.
-Copyright 2024 The ScaleLLM Authors. All Rights Reserved.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    https://github.com/jd-opensource/xllm/blob/main/LICENSE
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
 
 #pragma once
 
@@ -76,33 +61,5 @@ bool build_messages(const google::protobuf::RepeatedPtrField<
 
   return true;
 };
-
-static bool build_mm_embeddings(
-    const std::vector<torch::Tensor>& mm_embeddings,
-    google::protobuf::RepeatedPtrField<xllm::proto::Tensor>&
-        out_mm_embeddings) {
-  for (const auto& mm_embedding : mm_embeddings) {
-    CHECK(mm_embedding.is_contiguous())
-        << "Internal Error: only support contiguous mm_embedding";
-
-    xllm::proto::Tensor* out_mm_embedding = out_mm_embeddings.Add();
-
-    for (auto dim : mm_embedding.sizes()) {
-      out_mm_embedding->add_shape(static_cast<int32_t>(dim));
-    }
-
-    auto* tensor_contents =
-        new xllm::proto::TensorContents();  // protobuf take ownership of the
-                                            // memory
-    float* data_ptr = mm_embedding.data_ptr<float>();
-    tensor_contents->mutable_fp32_contents()->Add(
-        data_ptr, data_ptr + mm_embedding.numel());
-
-    out_mm_embedding->set_allocated_contents(
-        tensor_contents);  // protobuf take ownership of the tensor_contents
-                           // memory
-  }
-  return true;
-}
 
 }  // namespace xllm

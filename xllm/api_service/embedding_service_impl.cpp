@@ -23,6 +23,7 @@ limitations under the License.
 #include "framework/request/request_params.h"
 #include "mm_service_utils.h"
 #include "runtime/llm_master.h"
+#include "tensor_proto_builder.h"
 #include "util/utils.h"
 #include "util/uuid.h"
 
@@ -42,6 +43,10 @@ bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
   response.set_model(model);
 
   response.mutable_data()->Reserve(req_output.outputs.size());
+  std::string encoding_format = call->request().encoding_format();
+  bool use_binary_format = encoding_format == "binary";
+  TensorProtoBuilder mm_embeddings_output_builder(use_binary_format);
+  std::string binary_payload;
   for (const auto& output : req_output.outputs) {
     // add data into response
     auto* data = response.add_data();
@@ -53,8 +58,10 @@ bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
           output.embeddings->data() + output.embeddings->size());
     }
     if (output.mm_embeddings.has_value()) {
-      build_mm_embeddings(*output.mm_embeddings,
-                          *(data->mutable_mm_embeddings()));
+      mm_embeddings_output_builder.build_repeated_tensor(
+          *output.mm_embeddings,
+          *(data->mutable_mm_embeddings()),
+          binary_payload);
     }
   }
 
@@ -69,7 +76,7 @@ bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
     proto_usage->set_total_tokens(static_cast<int32_t>(usage.num_total_tokens));
   }
 
-  return call->write_and_finish(response);
+  return call->write_and_finish(response, binary_payload);
 }
 
 }  // namespace
