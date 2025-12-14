@@ -45,6 +45,11 @@ message EmbeddingRequest {
   optional bool add_special_tokens = 10;
 }
 
+message EmbeddingData {
+  Tensor embedding = 1;
+  map<string, Tensor> metadata = 2;
+}
+
 message EmbeddingResponseData {
   // The index of the embedding in the input array.
   int32 index = 1;
@@ -55,7 +60,7 @@ message EmbeddingResponseData {
 
   // The embedding vector.
   repeated float embedding = 3;
-  repeated Tensor mm_embeddings = 4;
+  repeated EmbeddingData mm_embeddings = 4;
   //oneof embedding {
   //  // float, The embedding vector as an array of floats.
   //  repeated float float_values = 3;

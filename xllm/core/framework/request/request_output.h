@@ -53,6 +53,11 @@ struct LogProb : public LogProbData {
   std::optional<std::vector<LogProbData>> top_logprobs;
 };
 
+struct EmbeddingOutput {
+  torch::Tensor embedding;
+  std::unordered_map<std::string, torch::Tensor> metadata;
+};
+
 struct SequenceOutput {
   // the index of the sequence in the request.
   size_t index;
@@ -76,7 +81,7 @@ struct SequenceOutput {
   std::optional<std::vector<float>> embeddings;
 
   // the embedding of multimodal output
-  std::optional<std::vector<torch::Tensor>> mm_embeddings;
+  std::optional<std::vector<EmbeddingOutput>> mm_embeddings;
 };
 
 struct RequestOutput {

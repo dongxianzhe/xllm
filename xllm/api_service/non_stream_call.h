@@ -50,6 +50,10 @@ class NonStreamCall : public Call {
 
   ~NonStreamCall() override { done_->Run(); }
 
+  void set_bytes_to_base64(bool bytes_to_base64) {
+    json_options_.bytes_to_base64 = bytes_to_base64;
+  }
+
   // For non stream response
   bool write_and_finish(Response& response) {
     butil::IOBufAsZeroCopyOutputStream json_output(

@@ -15,14 +15,13 @@ limitations under the License.
 
 #include "core/common/message.h"
 #include "core/common/types.h"
+#include "core/framework//request/request_output.h"
 #include "core/util/utils.h"
+#include "embedding.pb.h"
 #include "tensor.pb.h"
 
 namespace xllm {
 class TensorProtoBuilder {
- private:
-  std::string torch_dtype_to_string(at::ScalarType dtype);
-
  public:
   TensorProtoBuilder(bool use_binary_encoding);
   ~TensorProtoBuilder();
@@ -36,6 +35,23 @@ class TensorProtoBuilder {
 
  private:
   bool use_binary_encoding_;
+};
+
+class EmbeddingOutputBuilder {
+ public:
+  EmbeddingOutputBuilder(bool embedding_use_binary_encoding,
+                         bool metadata_use_binary_encoding);
+  ~EmbeddingOutputBuilder();
+  bool build_repeated_embedding_output(
+      const std::vector<EmbeddingOutput>& in_outputs,
+      google::protobuf::RepeatedPtrField<xllm::proto::EmbeddingData>&
+          out_outputs,
+      std::string& binary_payload);
+  bool build_embedding_output(const EmbeddingOutput& in_output,
+                              xllm::proto::EmbeddingData& out_output,
+                              std::string& binary_payload);
+  bool embedding_use_binary_encoding_;
+  bool metadata_use_binary_encoding_;
 };
 
 }  // namespace xllm

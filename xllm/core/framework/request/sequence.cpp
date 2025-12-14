@@ -329,9 +329,19 @@ SequenceOutput Sequence::generate_output(const Tokenizer& tokenizer) {
       output_mm_embeddings_.size() > 0) {
     SequenceOutput output;
     output.index = index_;
-    output.mm_embeddings = output_mm_embeddings_;
+    std::vector<EmbeddingOutput> embedding_outputs;
+    embedding_outputs.reserve(output_mm_embeddings_.size());
+    for (const auto& output_mm_embedding : output_mm_embeddings_) {
+      EmbeddingOutput embedding_output;
+      embedding_output.embedding = output_mm_embedding;
+      embedding_output.metadata["image_grid_thw"] =
+          mm_data_.get<torch::Tensor>("image_grid_thw").value();
+      embedding_outputs.push_back(embedding_output);
+    };
+    output.mm_embeddings = embedding_outputs;
     return output;
   }
+
   if (sequence_params_.sampling_param->is_embeddings) {
     SequenceOutput output;
     output.index = index_;

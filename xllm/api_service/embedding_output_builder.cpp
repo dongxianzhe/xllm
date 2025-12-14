@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#include "tensor_proto_builder.h"
+#include "embedding_output_builder.h"
 
 namespace xllm {
 
@@ -65,5 +65,50 @@ bool TensorProtoBuilder::build_tensor(const torch::Tensor& in_tensor,
   }
   return true;
 }
+
+EmbeddingOutputBuilder::EmbeddingOutputBuilder(
+    bool embedding_use_binary_encoding,
+    bool metadata_use_binary_encoding)
+    : embedding_use_binary_encoding_(embedding_use_binary_encoding),
+      metadata_use_binary_encoding_(metadata_use_binary_encoding) {};
+
+EmbeddingOutputBuilder::~EmbeddingOutputBuilder() {};
+
+bool EmbeddingOutputBuilder::build_repeated_embedding_output(
+    const std::vector<EmbeddingOutput>& in_embedding_outputs,
+    google::protobuf::RepeatedPtrField<xllm::proto::EmbeddingData>&
+        out_embedding_outputs,
+    std::string& binary_payload) {
+  for (const auto& in_embedding_output : in_embedding_outputs) {
+    xllm::proto::EmbeddingData* out_embedding_output =
+        out_embedding_outputs.Add();
+    if (!build_embedding_output(
+            in_embedding_output, *out_embedding_output, binary_payload)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool EmbeddingOutputBuilder::build_embedding_output(
+    const EmbeddingOutput& in_embedding_output,
+    xllm::proto::EmbeddingData& out_embedding_output,
+    std::string& binary_payload) {
+  TensorProtoBuilder embedding_output_builder(embedding_use_binary_encoding_);
+  embedding_output_builder.build_tensor(
+      in_embedding_output.embedding,
+      *out_embedding_output.mutable_embedding(),
+      binary_payload);
+
+  auto* meta_map = out_embedding_output.mutable_metadata();
+  for (const auto& [key, value] : in_embedding_output.metadata) {
+    TensorProtoBuilder meta_output_builder(metadata_use_binary_encoding_);
+    xllm::proto::Tensor metadata_tensor;
+    meta_output_builder.build_tensor(
+        in_embedding_output.metadata.at(key), metadata_tensor, binary_payload);
+    (*meta_map)[key] = std::move(metadata_tensor);
+  }
+  return true;
+};
 
 };  // namespace xllm

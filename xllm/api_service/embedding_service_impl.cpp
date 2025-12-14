@@ -20,10 +20,10 @@ limitations under the License.
 #include <string>
 
 #include "common/instance_name.h"
+#include "embedding_output_builder.h"
 #include "framework/request/request_params.h"
 #include "mm_service_utils.h"
 #include "runtime/llm_master.h"
-#include "tensor_proto_builder.h"
 #include "util/utils.h"
 #include "util/uuid.h"
 
@@ -45,7 +45,7 @@ bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
   response.mutable_data()->Reserve(req_output.outputs.size());
   std::string encoding_format = call->request().encoding_format();
   bool use_binary_format = encoding_format == "binary";
-  TensorProtoBuilder mm_embeddings_output_builder(use_binary_format);
+  EmbeddingOutputBuilder mm_embeddings_output_builder(use_binary_format, false);
   std::string binary_payload;
   for (const auto& output : req_output.outputs) {
     // add data into response
@@ -58,7 +58,8 @@ bool send_result_to_client_brpc(std::shared_ptr<EmbeddingCall> call,
           output.embeddings->data() + output.embeddings->size());
     }
     if (output.mm_embeddings.has_value()) {
-      mm_embeddings_output_builder.build_repeated_tensor(
+      call->set_bytes_to_base64(true);
+      mm_embeddings_output_builder.build_repeated_embedding_output(
           *output.mm_embeddings,
           *(data->mutable_mm_embeddings()),
           binary_payload);
