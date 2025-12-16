@@ -13,6 +13,7 @@ cc_library(
     executor.h
     executor_impl.h
     base_executor_impl.h
+    vlm_executor_impl.h
     dit_executor.h
     $<$<BOOL:${USE_NPU}>:acl_graph_executor_impl.h>
     worker.h
@@ -30,6 +31,7 @@ cc_library(
   SRCS
     executor.cpp
     base_executor_impl.cpp
+    vlm_executor_impl.cpp
     dit_executor.cpp
     $<$<BOOL:${USE_NPU}>:acl_graph_executor_impl.cpp>
     worker.cpp

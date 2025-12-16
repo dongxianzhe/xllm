@@ -43,7 +43,10 @@ class MMBatchData {
   bool has(const MMKey& key) const;
   void get(const MMKey& key, std::vector<torch::Tensor>& vec) const;
 
-  MMBatchData to(const torch::Device& device) const;
+  void to(const torch::Device& device);
+  static MMBatchData to(const MMBatchData& mm_data,
+                        const torch::Device& device);
+
   void batch(const std::vector<MMData>& mm_datas);
 
   template <typename T>
@@ -51,12 +54,14 @@ class MMBatchData {
     if (!valid()) return std::nullopt;
 
     const auto& itor = data_.find(key);
-    if (itor != data_.end()) {
+    if (itor != data_.end())
       return std::get<T>(itor->second);
-    } else {
+    else
       return std::nullopt;
-    }
   }
+
+  void replace(const MMDict& data) { data_ = std::move(data); }
+  const std::vector<MMData>& mm_data_vec() const { return mm_datas_; }
 
   bool foreach (MMData::IVisitor& v) {
     for (auto& item : mm_datas_) {
@@ -78,7 +83,6 @@ class MMBatchData {
  private:
   uint32_t ty_ = MMType::NONE;
   MMDict data_;
-
   std::vector<MMData> mm_datas_;
 };
 

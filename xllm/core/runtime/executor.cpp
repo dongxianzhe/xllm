@@ -21,6 +21,7 @@ limitations under the License.
 #include "common/global_flags.h"
 #include "common/metrics.h"
 #include "runtime/base_executor_impl.h"
+#include "runtime/vlm_executor_impl.h"
 #if defined(USE_NPU)
 #include "runtime/acl_graph_executor_impl.h"
 #endif
@@ -40,7 +41,11 @@ Executor::Executor(CausalLM* model,
     return;
   }
 #endif
-  impl_ = std::make_unique<BaseExecutorImpl>(model, args, device, options);
+  if (options.backend() == "vlm") {
+    impl_ = std::make_unique<VlmExecutorImpl>(model, args, device, options);
+  } else {
+    impl_ = std::make_unique<BaseExecutorImpl>(model, args, device, options);
+  }
 }
 
 ForwardInput Executor::prepare_inputs(Batch& batch) {
